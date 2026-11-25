@@ -87,6 +87,10 @@ func getRouter(log *zap.Logger) *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.ErrorLogger())
 	router.GET("/", func(ctx *gin.Context) {
+		if routes.WantsHTML(ctx) {
+			routes.ServeHome(ctx, versionString, startTime)
+			return
+		}
 		ctx.JSON(http.StatusOK, types.RootResponse{
 			Name:    config.ValueOf.BotName,
 			Workers: len(bot.Workers.Bots),

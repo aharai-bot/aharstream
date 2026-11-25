@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f0f0f">
+<title>{{.BotName}} · Stream &amp; download Telegram files</title>
+<meta name="description" content="{{.BotName}} turns Telegram files into instant streaming and download links.">
+<style>
+:root{--bg:#0b0b0f;--card:#15151c;--card2:#1b1b25;--text:#f3f3f7;--muted:#9a9ab0;--red:#ff0033;--violet:#a100ff;--ok:#2ee59d;--line:rgba(255,255,255,.08);--grad:linear-gradient(135deg,#ff0033,#a100ff)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Roboto,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;line-height:1.55;overflow-x:hidden}
+svg{display:block;fill:currentColor}
+a{color:inherit;text-decoration:none}
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 500px at 12% -5%,rgba(255,0,51,.18),transparent 60%),radial-gradient(800px 500px at 95% 5%,rgba(161,0,255,.18),transparent 60%),radial-gradient(700px 500px at 50% 110%,rgba(255,0,51,.08),transparent 60%)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);background:rgba(11,11,15,.75);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.2px}
+.brand i{width:34px;height:26px;border-radius:8px;background:var(--grad);display:grid;place-items:center;color:#fff}
+.brand i svg{width:18px;height:18px}
+.links{display:flex;gap:6px;align-items:center}
+.links a{padding:8px 12px;border-radius:10px;color:var(--muted);font-size:.92rem;transition:.15s}
+.links a:hover{color:#fff;background:rgba(255,255,255,.06)}
+
+/* hero */
+.hero{text-align:center;padding:84px 0 44px}
+.badge{display:inline-flex;align-items:center;gap:9px;padding:7px 14px;border-radius:999px;background:rgba(46,229,157,.1);border:1px solid rgba(46,229,157,.25);color:var(--ok);font-size:.85rem;font-weight:500}
+.badge.off{background:rgba(255,80,80,.1);border-color:rgba(255,80,80,.3);color:#ff6b6b}
+.dot{width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 0 0 currentColor;animation:ping 2s infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(46,229,157,.6)}70%{box-shadow:0 0 0 9px rgba(46,229,157,0)}100%{box-shadow:0 0 0 0 rgba(46,229,157,0)}}
+.logo{width:96px;height:96px;margin:28px auto 8px;border-radius:28px;background:var(--grad);display:grid;place-items:center;color:#fff;box-shadow:0 20px 60px rgba(255,0,51,.35),inset 0 0 0 1px rgba(255,255,255,.15)}
+.logo svg{width:58px;height:58px}
+h1{font-size:clamp(2.2rem,6vw,4rem);line-height:1.1;margin:16px 0 14px;letter-spacing:-1.5px;font-weight:800}
+h1 span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{max-width:640px;margin:0 auto;color:var(--muted);font-size:1.1rem}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 24px;border-radius:14px;font-weight:600;transition:transform .15s,box-shadow .15s,background .15s}
+.btn svg{width:20px;height:20px}
+.btn.pri{background:var(--grad);color:#fff;box-shadow:0 10px 30px rgba(255,0,51,.3)}
+.btn.pri:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(255,0,51,.4)}
+.btn.sec{background:var(--card2);border:1px solid var(--line)}
+.btn.sec:hover{background:#262633}
+
+/* uptime */
+.up{margin:46px auto 0;max-width:640px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 22px 18px}
+.up small{display:block;color:var(--muted);text-transform:uppercase;letter-spacing:1.4px;font-size:.74rem;margin-bottom:14px}
+.clock{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.clock div{background:var(--card2);border-radius:14px;padding:14px 6px}
+.clock b{display:block;font-size:clamp(1.6rem,5vw,2.4rem);font-variant-numeric:tabular-nums;font-weight:700;line-height:1.1}
+.clock span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+/* sections */
+section{padding:44px 0}
+.eyebrow{color:var(--red);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:1.6px;margin-bottom:8px}
+h2{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 10px;letter-spacing:-.8px}
+.lead{color:var(--muted);max-width:640px;margin:0 0 28px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;transition:transform .15s,border-color .15s}
+.stat:hover{transform:translateY(-3px);border-color:rgba(255,0,51,.4)}
+.stat .ic{width:38px;height:38px;border-radius:11px;background:rgba(255,0,51,.12);color:#ff5a7a;display:grid;place-items:center;margin-bottom:12px}
+.stat .ic svg{width:21px;height:21px}
+.stat b{display:block;font-size:1.65rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.stat span{color:var(--muted);font-size:.85rem}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px}
+.card .ic{width:44px;height:44px;border-radius:13px;background:var(--grad);display:grid;place-items:center;margin-bottom:14px;color:#fff}
+.card .ic svg{width:24px;height:24px}
+.card h3{margin:0 0 6px;font-size:1.08rem}
+.card p{margin:0;color:var(--muted);font-size:.93rem}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 22px 22px}
+.step::before{counter-increment:s;content:counter(s);position:absolute;top:-14px;left:20px;width:30px;height:30px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.step h3{margin:6px 0 6px;font-size:1.05rem}
+.step p{margin:0;color:var(--muted);font-size:.92rem}
+.about{display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:stretch}
+.about .card p+p{margin-top:10px}
+.kv{display:grid;gap:10px}
+.kv div{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.93rem}
+.kv div:last-child{border:0}
+.kv span{color:var(--muted)}
+.kv b{font-weight:500;text-align:right}
+code{background:var(--card2);border-radius:6px;padding:2px 7px;font-size:.85rem}
+
+footer{margin-top:30px;border-top:1px solid var(--line);padding:30px 0 40px;text-align:center;color:var(--muted);font-size:.9rem}
+footer .by{display:inline-flex;align-items:center;gap:8px;font-size:1rem;color:var(--text);font-weight:500;margin-bottom:8px}
+footer .by svg{width:18px;height:18px;color:var(--red)}
+footer .by b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:700}
+
+@media (max-width:760px){
+  .hero{padding-top:56px}
+  .about{grid-template-columns:1fr}
+  .links a.hide{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-logo" viewBox="0 0 24 24"><path d="M5 6.500v11L13.500 12z"/><path d="M16.800 8.800a4.500 4.500 0 0 1 0 6.400M19.600 6.200a8.200 8.200 0 0 1 0 11.600" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round"/></symbol>
+<symbol id="i-tg" viewBox="0 0 24 24"><path d="M21.900 4.300 18.700 19.500c-.2 1-.9 1.300-1.700.8l-4.800-3.600-2.300 2.300c-.3.3-.5.500-1 .5l.3-4.900 8.900-8c.4-.3-.1-.5-.6-.2L6.500 13.300l-4.700-1.500c-1-.3-1-1 .2-1.500L20.400 3.200c.9-.3 1.700.2 1.500 1.100z"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><path d="M9.400 16.600 4.800 12l4.600-4.600L8 6l-6 6 6 6zm5.200 0 4.600-4.600-4.600-4.600L16 6l6 6-6 6z"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm0 2c-2.300 0-7 1.200-7 3.500V19h14v-2.500C15 14.200 10.300 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.200.8 2 2 2 3.400V19h6v-2.500c0-2.300-4.700-3.500-7-3.500z"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M3.900 12c0-1.700 1.400-3.100 3.100-3.100h4V7H7a5 5 0 0 0 0 10h4v-1.900H7c-1.700 0-3.100-1.400-3.100-3.100zM8 13h8v-2H8zm9-6h-4v1.900h4c1.700 0 3.100 1.400 3.100 3.100s-1.400 3.100-3.100 3.100h-4V17h4a5 5 0 0 0 0-10z"/></symbol>
+<symbol id="i-dl" viewBox="0 0 24 24"><path d="M17 18v2H7v-2zM12 16l5-5-1.400-1.400-2.600 2.600V4h-2v8.200L8.400 9.600 7 11z"/></symbol>
+<symbol id="i-data" viewBox="0 0 24 24"><path d="M12 3C7.600 3 4 4.300 4 6v12c0 1.700 3.600 3 8 3s8-1.300 8-3V6c0-1.700-3.600-3-8-3zm0 2c3.600 0 5.800.9 6 1-.2.100-2.400 1-6 1S6.200 6.100 6 6c.2-.1 2.400-1 6-1zm6 13c-.2.100-2.400 1-6 1s-5.800-.9-6-1v-2.100c1.500.7 3.700 1.100 6 1.100s4.500-.4 6-1.100zm0-5c-.2.100-2.400 1-6 1s-5.800-.9-6-1v-2.100c1.500.7 3.700 1.100 6 1.100s4.500-.4 6-1.100z"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><path d="M15 9H9v6h6zm-2 4h-2v-2h2zm8-2V9h-2V7a2 2 0 0 0-2-2h-2V3h-2v2h-2V3H9v2H7a2 2 0 0 0-2 2v2H3v2h2v2H3v2h2v2a2 2 0 0 0 2 2h2v2h2v-2h2v2h2v-2h2a2 2 0 0 0 2-2v-2h2v-2h-2v-2zm-4 6H7V7h10z"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M11 21h-1l1-7H7.500c-.6 0-.6-.3-.4-.7L13 3h1l-1 7h3.500c.5 0 .6.300.4.700z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm.5 5H11v6l5.200 3.200.8-1.200-4.500-2.700z"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M21.400 11.600 12.400 2.600A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7c0 .5.200 1 .6 1.400l9 9c.8.800 2 .8 2.800 0l7-7c.8-.8.800-2 0-2.800zM6.500 8a1.500 1.500 0 1 1 0-3 1.500 1.500 0 0 1 0 3z"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21.400 10.600 20.100C5.400 15.400 2 12.300 2 8.500 2 5.400 4.400 3 7.500 3c1.700 0 3.400.8 4.500 2.100C13.100 3.800 14.800 3 16.500 3 19.600 3 22 5.400 22 8.500c0 3.800-3.400 6.900-8.600 11.600z"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.500 3.800 10.700 9 12 5.200-1.300 9-6.500 9-12V5zm-1 15-4-4 1.400-1.400L11 13.200l5.600-5.600L18 9z"/></symbol>
+</defs></svg>
+
+<nav><div class="wrap">
+  <a class="brand" href="/"><i><svg><use href="#i-logo"/></svg></i>{{.BotName}}</a>
+  <div class="links">
+    <a href="#stats">Live stats</a><a href="#features" class="hide">Features</a><a href="#about" class="hide">About</a>
+    {{if .BotUser}}<a href="https://t.me/{{.BotUser}}" target="_blank" rel="noopener">Open bot</a>{{end}}
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="badge" id="status"><i class="dot"></i><span id="statusTxt">Server online</span></span>
+  <div class="logo"><svg><use href="#i-logo"/></svg></div>
+  <h1>Stream &amp; download <span>Telegram files</span><br>instantly</h1>
+  <p class="sub">{{.BotName}} turns any file you send to the bot into a fast streaming and download link, with a YouTube-style player right in your browser.</p>
+  <div class="cta">
+    {{if .BotUser}}<a class="btn pri" href="https://t.me/{{.BotUser}}" target="_blank" rel="noopener"><svg><use href="#i-tg"/></svg>Open in Telegram</a>{{end}}
+    <a class="btn sec" href="#how"><svg><use href="#i-play"/></svg>How it works</a>
+  </div>
+  <div class="up">
+    <small>Running for</small>
+    <div class="clock">
+      <div><b id="cd">0</b><span>Days</span></div>
+      <div><b id="ch">00</b><span>Hours</span></div>
+      <div><b id="cm">00</b><span>Minutes</span></div>
+      <div><b id="cs">00</b><span>Seconds</span></div>
+    </div>
+  </div>
+</div></header>
+
+<section id="stats"><div class="wrap">
+  <div class="eyebrow">Live status</div>
+  <h2>Server at a glance</h2>
+  <p class="lead">Numbers refresh automatically while this page is open.</p>
+  <div class="stats">
+    <div class="stat"><div class="ic"><svg><use href="#i-users"/></svg></div><b id="sUsers">-</b><span>Users</span></div>
+    <div class="stat"><div class="ic"><svg><use href="#i-link"/></svg></div><b id="sLinks">-</b><span>Links created</span></div>
+    <div class="stat"><div class="ic"><svg><use href="#i-dl"/></svg></div><b id="sDl">-</b><span>Total downloads</span></div>
+    <div class="stat"><div class="ic"><svg><use href="#i-data"/></svg></div><b id="sBytes">-</b><span>Data served</span></div>
+    <div class="stat"><div class="ic"><svg><use href="#i-cpu"/></svg></div><b>{{.Workers}}</b><span>Active workers</span></div>
+    <div class="stat"><div class="ic"><svg><use href="#i-tag"/></svg></div><b>v{{.Version}}</b><span>Version</span></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="eyebrow">How it works</div>
+  <h2>Three simple steps</h2>
+  <p class="lead">No sign-ups and no waiting for uploads to finish.</p>
+  <div class="steps">
+    <div class="step"><h3>Send a file</h3><p>Send or forward any video, audio, image, or document to the bot on Telegram.</p></div>
+    <div class="step"><h3>Get your link</h3><p>The bot replies with a direct stream link and a download link for your file.</p></div>
+    <div class="step"><h3>Watch or download</h3><p>Open the web player to watch right away, or share the link with anyone.</p></div>
+  </div>
+</div></section>
+
+<section id="features"><div class="wrap">
+  <div class="eyebrow">Features</div>
+  <h2>Built to be fast and light</h2>
+  <p class="lead">Everything runs on a single small server.</p>
+  <div class="grid3">
+    <div class="card"><div class="ic"><svg><use href="#i-bolt"/></svg></div><h3>Instant streaming</h3><p>Playback starts right away and you can seek anywhere in the file, since the server supports range requests.</p></div>
+    {{if .Player}}<div class="card"><div class="ic"><svg><use href="#i-play"/></svg></div><h3>YouTube-style player</h3><p>Custom controls, keyboard shortcuts, playback speed, theater mode, picture-in-picture, and subtitles.</p></div>{{end}}
+    <div class="card"><div class="ic"><svg><use href="#i-cpu"/></svg></div><h3>Multi-worker</h3><p>Traffic is spread across several bot workers, so big files stay fast.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-clock"/></svg></div><h3>Expiring links</h3><p>Links can expire after a set time, and download counts are tracked for each one.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-shield"/></svg></div><h3>Secure links</h3><p>Every link carries its own hash, so only people with the link can open the file.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-data"/></svg></div><h3>Low resource use</h3><p>Written in Go and made to run on low-power servers. Files are streamed through, not converted.</p></div>
+  </div>
+</div></section>
+
+<section id="about"><div class="wrap">
+  <div class="eyebrow">About</div>
+  <h2>About this project</h2>
+  <div class="about">
+    <div class="card">
+      <h3>{{.BotName}}</h3>
+      <p>{{.BotName}} is a Telegram file streaming service. It lets you turn files stored in Telegram into links that you can open in any browser or media player, without downloading the file first.</p>
+      <p>This edition has been redesigned with a new web player and landing page, and it is remodified and maintained by <b>Ahar Developers</b>.</p>
+    </div>
+    <div class="card">
+      <div class="kv">
+        <div><span>Status</span><b id="kvStatus">Online</b></div>
+        <div><span>Version</span><b>{{.Version}}</b></div>
+        <div><span>Workers</span><b>{{.Workers}}</b></div>
+        <div><span>Uptime</span><b id="kvUp">{{.Uptime}}</b></div>
+        <div><span>Web player</span><b>{{if .Player}}Enabled{{else}}Disabled{{end}}</b></div>
+        <div><span>API</span><b><code>/api/stats</code> <code>/health</code></b></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="by">Remodified with <svg><use href="#i-heart"/></svg> by <b>Ahar Developers</b></div>
+  <div>{{.BotName}} · v{{.Version}}</div>
+</div></footer>
+
+<script>
+(function(){
+var START={{.StartedMs}};
+function $(i){return document.getElementById(i)}
+function p2(n){return n<10?'0'+n:''+n}
+function tick(){
+  var s=Math.max(0,Math.floor((Date.now()-START)/1000));
+  var d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60;
+  $('cd').textContent=d;$('ch').textContent=p2(h);$('cm').textContent=p2(m);$('cs').textContent=p2(x);
+}
+tick();setInterval(function(){if(!document.hidden)tick()},1000);
+
+function nf(n){return (n||0).toLocaleString()}
+function bytes(b){
+  b=b||0;if(b<1024)return b+' B';
+  var u=['KB','MB','GB','TB','PB'],i=-1;
+  do{b/=1024;i++}while(b>=1024&&i<u.length-1);
+  return b.toFixed(b>=100?0:2)+' '+u[i];
+}
+var failed=0;
+function setOnline(on){
+  var st=$('status');st.classList.toggle('off',!on);
+  $('statusTxt').textContent=on?'Server online':'Connection lost';
+  $('kvStatus').textContent=on?'Online':'Unreachable';
+}
+function load(){
+  fetch('/api/stats',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+    failed=0;setOnline(true);
+    $('sUsers').textContent=nf(j.users);
+    $('sLinks').textContent=nf(j.links_created);
+    $('sDl').textContent=nf(j.total_downloads);
+    $('sBytes').textContent=bytes(j.bytes_served);
+    if(j.uptime)$('kvUp').textContent=j.uptime;
+  }).catch(function(){failed++;if(failed>=2)setOnline(false)});
+}
+load();
+setInterval(function(){if(!document.hidden)load()},10000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden){tick();load()}});
+})();
+</script>
+</body>
+</html>
