@@ -20,8 +20,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 /* ---------- top bar ---------- */
 .top{position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;background:rgba(15,15,15,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.1rem;letter-spacing:-.3px}
-.logo i{width:30px;height:21px;border-radius:6px;background:var(--red);display:grid;place-items:center}
-.logo i svg{width:12px;height:12px;fill:#fff}
+.logo i{width:32px;height:24px;border-radius:7px;background:var(--red);display:grid;place-items:center}
+.logo i svg{width:16px;height:16px;color:#fff}
 
 /* ---------- layout ---------- */
 .page{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
@@ -129,6 +129,9 @@ body.theater .info{max-width:1280px;margin:0 auto;padding:16px 24px 0}
 .cb.cc.has{display:grid}
 .cb.cc.on::after{content:"";position:absolute;left:10px;right:10px;bottom:7px;height:3px;border-radius:2px;background:var(--red)}
 .player video::cue{background:rgba(8,8,8,.75);color:#fff;font-family:Roboto,Arial,sans-serif;font-size:1.1em}
+.mnote{padding:8px 16px 10px;color:var(--muted);font-size:.78rem;line-height:1.45;max-width:270px}
+.mi.dis{opacity:.5;cursor:default}
+.mi.dis:hover{background:none}
 /* settings */
 .menu{position:absolute;right:12px;bottom:68px;min-width:230px;background:rgba(28,28,28,.96);backdrop-filter:blur(8px);border-radius:12px;padding:8px 0;display:none;font-size:.9rem;box-shadow:0 8px 30px rgba(0,0,0,.5);max-height:80%;overflow:auto;z-index:5}
 .menu.open{display:block}
@@ -152,7 +155,8 @@ body.theater .info{max-width:1280px;margin:0 auto;padding:16px 24px 0}
 h1{font-size:1.3rem;font-weight:600;line-height:1.4;margin:0 0 12px;word-break:break-word}
 .chrow{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;justify-content:space-between}
 .chan{display:flex;align-items:center;gap:12px;min-width:0}
-.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#ff0033,#a100ff);display:grid;place-items:center;font-weight:700;flex:none}
+.avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#ff0033,#a100ff);display:grid;place-items:center;flex:none;color:#fff;box-shadow:0 2px 10px rgba(255,0,51,.35)}
+.avatar svg{width:26px;height:26px}
 .chan b{display:block;font-size:1rem}
 .chan small{color:var(--muted);font-size:.8rem}
 .acts{display:flex;flex-wrap:wrap;gap:8px}
@@ -210,6 +214,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
 <symbol id="i-cc" viewBox="0 0 24 24"><path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-8 7H9.500v-.5h-2v3h2V13H11v1a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1zm7 0h-1.500v-.5h-2v3h2V13H18v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1z"/></symbol>
 <symbol id="i-audio" viewBox="0 0 24 24"><path d="M12 3v10.550A4 4 0 1 0 14 17V7h4V3z"/></symbol>
 <symbol id="i-up" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></symbol>
+<symbol id="i-logo" viewBox="0 0 24 24"><path d="M5 6.500v11L13.500 12z"/><path d="M16.800 8.800a4.500 4.500 0 0 1 0 6.400M19.600 6.200a8.200 8.200 0 0 1 0 11.600" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round"/></symbol>
 <symbol id="i-chev" viewBox="0 0 24 24"><path d="M10 6L8.600 7.400 13.200 12l-4.600 4.600L10 18l6-6z"/></symbol>
 <symbol id="i-chevl" viewBox="0 0 24 24"><path d="M15.400 7.400L14 6l-6 6 6 6 1.400-1.400L10.800 12z"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.200L4.800 12l-1.400 1.400L9 19 21 7l-1.400-1.400z"/></symbol>
@@ -219,7 +224,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
 </defs></svg>
 
 <div class="top">
-  <div class="logo"><i><svg><use href="#i-play"/></svg></i>{{.BotName}}</div>
+  <div class="logo"><i><svg><use href="#i-logo"/></svg></i>{{.BotName}}</div>
 </div>
 
 <div class="page">
@@ -281,7 +286,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
 <div class="info">
   <h1>{{.Name}}</h1>
   <div class="chrow">
-    <div class="chan"><div class="avatar">{{.BotName}}</div><div><b>{{.BotName}}</b><small>{{.KindLabel}} · {{.Size}}</small></div></div>
+    <div class="chan"><div class="avatar"><svg><use href="#i-logo"/></svg></div><div><b>{{.BotName}}</b><small>{{.KindLabel}} · {{.Size}}</small></div></div>
     <div class="acts">
       <a class="pill pri" href="{{.DownloadURL}}"><svg><use href="#i-dl"/></svg>Download</a>
       <button class="pill" id="copy"><svg><use href="#i-link"/></svg><span>Copy link</span></button>
@@ -466,7 +471,7 @@ function tLabel(t,i){return t.label||(t.language?t.language.toUpperCase():'Track
 function activeSub(){var l=textList();for(var i=0;i<l.length;i++)if(l[i].mode==='showing')return i;return -1}
 function setSub(i){
   var l=textList();
-  for(var k=0;k<l.length;k++)l[k].mode=(k===i)?'showing':'disabled';
+  for(var k=0;k<l.length;k++)l[k].mode=(k===i)?'showing':'hidden';
   store('fsb:subs',i>=0?'1':'0');
   syncCC();
 }
@@ -476,15 +481,16 @@ function setAudio(i){
   toast('Audio: '+tLabel(l[i],i));
 }
 function syncCC(){
-  var has=textList().length>0;
+  var has=textList().length>0||emb.subs.some(function(s){return s.text});
   bCC.classList.toggle('has',has);
   bCC.classList.toggle('on',activeSub()>-1);
 }
 function toggleSubs(){
-  var l=textList();
-  if(!l.length){toast('No subtitles - load one in Settings');return}
-  if(activeSub()>-1){setSub(-1);toast('Subtitles off')}
-  else{setSub(0);toast('Subtitles on')}
+  if(activeSub()>-1){setSub(-1);toast('Subtitles off');return}
+  if(textList().length){setSub(0);toast('Subtitles on');return}
+  var s=emb.subs.filter(function(x){return x.text})[0];
+  if(s){startExtract();setSub(textList().indexOf(s.track));toast('Extracting subtitles...');return}
+  toast('No subtitles - load one in Settings');
 }
 bCC.addEventListener('click',function(e){e.stopPropagation();toggleSubs()});
 if(M.textTracks&&M.textTracks.addEventListener){
@@ -513,21 +519,224 @@ subFile.addEventListener('change',function(){
     var el=document.createElement('track');
     el.kind='subtitles';el.label=f.name.replace(/\.[^.]+$/,'');el.src=url;
     M.appendChild(el);
-    el.track.mode='disabled';
+    el.track.mode='hidden';
     setTimeout(function(){setSub(textList().indexOf(el.track));toast('Subtitles loaded')},30);
   }).catch(function(){toast('Could not read subtitle file')});
   subFile.value='';
 });
+/* ===== MKV reader: runs in the browser only (no ffmpeg, no server CPU) ===== */
+var FSIZE={{.Size}};
+var emb={audio:[],subs:[]},scanning=false,extracted=false,scanCtl=null,scanRd=null,scanTotal=0;
+var LANG={eng:'English',tam:'Tamil',tel:'Telugu',hin:'Hindi',kan:'Kannada',mal:'Malayalam',jpn:'Japanese',kor:'Korean',fre:'French',fra:'French',ger:'German',deu:'German',spa:'Spanish',ita:'Italian',rus:'Russian',chi:'Chinese',zho:'Chinese',ara:'Arabic',por:'Portuguese',tha:'Thai',ben:'Bengali',mar:'Marathi',pan:'Punjabi',urd:'Urdu',ind:'Indonesian',may:'Malay',msa:'Malay',tur:'Turkish',dut:'Dutch',nld:'Dutch',pol:'Polish',vie:'Vietnamese',und:'Unknown'};
+var ACODEC={'A_AAC':'AAC','A_AC3':'AC3','A_EAC3':'EAC3','A_DTS':'DTS','A_OPUS':'Opus','A_VORBIS':'Vorbis','A_FLAC':'FLAC','A_TRUEHD':'TrueHD','A_MPEG/L3':'MP3'};
+var TD=new TextDecoder('utf-8');
+
+function vint(b,p,keep){
+  var f=b[p],len=1,m=0x80;
+  while(len<=8&&!(f&m)){len++;m>>=1}
+  if(len>8||p+len>b.length)return null;
+  var v=keep?f:(f&(m-1));
+  for(var i=1;i<len;i++)v=v*256+b[p+i];
+  return {v:v,len:len};
+}
+function each(b,fn){
+  var p=0;
+  while(p<b.length){
+    var id=vint(b,p,true);if(!id)return;p+=id.len;
+    var sz=vint(b,p,false);if(!sz)return;p+=sz.len;
+    var e=Math.min(b.length,p+sz.v);
+    fn(id.v,b.subarray(p,e));p=e;
+  }
+}
+function uintOf(d){var v=0;for(var i=0;i<d.length;i++)v=v*256+d[i];return v}
+function strOf(d){return TD.decode(d).replace(/\0+$/,'')}
+function parseTracks(b){
+  var out=[];
+  each(b,function(id,d){
+    if(id!==0xAE)return;
+    var t={num:0,type:0,codec:'',lang:'eng',name:'',ch:0,def:false};
+    each(d,function(i2,x){
+      if(i2===0xD7)t.num=uintOf(x);
+      else if(i2===0x83)t.type=uintOf(x);
+      else if(i2===0x86)t.codec=strOf(x);
+      else if(i2===0x22B59C)t.lang=strOf(x);
+      else if(i2===0x536E)t.name=strOf(x);
+      else if(i2===0x88)t.def=uintOf(x)===1;
+      else if(i2===0xE1)each(x,function(i3,y){if(i3===0x9F)t.ch=uintOf(y)});
+    });
+    out.push(t);
+  });
+  return out;
+}
+
+/* tiny streaming reader: keeps almost nothing in memory, skips video/audio bytes */
+function Rd(r){this.r=r;this.buf=new Uint8Array(0);this.pos=0;this.total=0;this.done=false}
+Rd.prototype.fill=async function(n){
+  while(this.buf.length-this.pos<n&&!this.done){
+    var c=await this.r.read();
+    if(c.done){this.done=true;break}
+    this.total+=c.value.length;
+    var rest=this.buf.subarray(this.pos);
+    var nb=new Uint8Array(rest.length+c.value.length);
+    nb.set(rest);nb.set(c.value,rest.length);
+    this.buf=nb;this.pos=0;
+  }
+  return this.buf.length-this.pos>=n;
+};
+Rd.prototype.skip=async function(n){
+  var have=this.buf.length-this.pos;
+  if(n<=have){this.pos+=n;return true}
+  n-=have;this.buf=new Uint8Array(0);this.pos=0;
+  while(n>0){
+    var c=await this.r.read();
+    if(c.done){this.done=true;return false}
+    this.total+=c.value.length;
+    if(c.value.length>n){this.buf=c.value.subarray(n);this.pos=0;return true}
+    n-=c.value.length;
+  }
+  return true;
+};
+Rd.prototype.id=async function(){
+  if(!await this.fill(1))return null;
+  var b=this.buf[this.pos],len=1,m=0x80;
+  while(len<=4&&!(b&m)){len++;m>>=1}
+  if(len>4||!await this.fill(len))return null;
+  var v=0;for(var i=0;i<len;i++)v=v*256+this.buf[this.pos+i];
+  this.pos+=len;return v;
+};
+Rd.prototype.size=async function(){
+  if(!await this.fill(1))return undefined;
+  var b=this.buf[this.pos],len=1,m=0x80;
+  while(len<=8&&!(b&m)){len++;m>>=1}
+  if(len>8||!await this.fill(len))return undefined;
+  var v=b&(m-1),ones=(v===m-1);
+  for(var i=1;i<len;i++){var x=this.buf[this.pos+i];v=v*256+x;if(x!==255)ones=false}
+  this.pos+=len;return ones?-1:v;
+};
+Rd.prototype.uint=async function(n){
+  if(n>8||!await this.fill(n))return null;
+  var v=0;for(var i=0;i<n;i++)v=v*256+this.buf[this.pos+i];
+  this.pos+=n;return v;
+};
+
+async function parseMkv(rd,o){
+  var scale=1000000,clT=0,last=null,first=true;
+  for(;;){
+    var id=await rd.id();if(id===null)return;
+    var sz=await rd.size();if(sz===undefined)return;
+    if(first){first=false;if(id!==0x1A45DFA3)return}
+    /* containers we step into: Segment, Info, Cluster, BlockGroup */
+    if(id===0x18538067||id===0x1549A966||id===0xA0){continue}
+    if(id===0x1F43B675){if(o.probe)return;continue}
+    if(id===0x1654AE6B){
+      if(sz<0||sz>4000000||!await rd.fill(sz))return;
+      var data=rd.buf.slice(rd.pos,rd.pos+sz);rd.pos+=sz;
+      o.onTracks(parseTracks(data));
+      if(o.probe)return;
+      continue;
+    }
+    if(id===0x2AD7B1){var s=await rd.uint(sz);if(s===null)return;scale=s;continue}
+    if(id===0xE7){var t=await rd.uint(sz);if(t===null)return;clT=t;continue}
+    if(id===0x9B){
+      var du=await rd.uint(sz);if(du===null)return;
+      if(last)last.endTime=last.startTime+du*scale/1e9;
+      continue;
+    }
+    if(id===0xA3||id===0xA1){
+      if(sz<0||!await rd.fill(Math.min(sz,4)))return;
+      var tv=vint(rd.buf,rd.pos,false);
+      if(tv&&o.subs[tv.v]&&sz<2000000){
+        if(!await rd.fill(sz))return;
+        var d=rd.buf.slice(rd.pos,rd.pos+sz);rd.pos+=sz;
+        var rel=((d[tv.len]<<8)|d[tv.len+1]);if(rel&0x8000)rel-=0x10000;
+        last=o.onBlock(o.subs[tv.v],(clT+rel)*scale/1e9,d.subarray(tv.len+3));
+      }else{
+        last=null;
+        if(!await rd.skip(sz))return;
+      }
+      continue;
+    }
+    if(sz<0)continue;
+    if(!await rd.skip(sz))return;
+  }
+}
+
+function embLabel(s){
+  var n=s.name||LANG[s.lang]||s.lang.toUpperCase();
+  if(s.name&&LANG[s.lang]&&s.name.toLowerCase().indexOf(LANG[s.lang].toLowerCase())<0)n=LANG[s.lang]+' - '+s.name;
+  if(s.type===2){
+    var c=ACODEC[s.codec]||s.codec.replace('A_','');
+    n+=' ('+c+(s.ch?' '+(s.ch>2?(s.ch-1)+'.1':s.ch+'.0'):'')+')';
+  }
+  return n;
+}
+function cleanSub(codec,txt){
+  if(codec==='S_TEXT/ASS'||codec==='S_TEXT/SSA'){
+    txt=txt.split(',').slice(8).join(',');
+    txt=txt.replace(/\{[^}]*\}/g,'').replace(/\\[Nn]/g,'\n').replace(/\\h/g,' ');
+    txt=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  }
+  return txt.replace(/\n+$/,'');
+}
+/* 1) read only the file header to learn which tracks exist (tiny download) */
+function probe(){
+  var ctl=new AbortController();
+  fetch(STREAM,{headers:{Range:'bytes=0-'},signal:ctl.signal}).then(function(r){
+    var rd=new Rd(r.body.getReader());
+    return parseMkv(rd,{probe:true,subs:{},onTracks:function(list){
+      emb.audio=list.filter(function(t){return t.type===2});
+      emb.subs=list.filter(function(t){return t.type===17}).map(function(t){
+        t.text=/^S_TEXT\/(UTF8|ASS|SSA|WEBVTT)$/.test(t.codec);return t;
+      });
+    }});
+  }).catch(function(){}).then(function(){
+    ctl.abort();
+    syncCC();
+    if(menu.classList.contains('open'))renderMenu();
+  });
+}
+/* 2) only when the user asks: stream the file once, keep just the subtitle lines */
+function startExtract(){
+  if(scanning||extracted)return;
+  var texts=emb.subs.filter(function(s){return s.text});
+  if(!texts.length)return;
+  scanning=true;extracted=true;
+  var map={};
+  texts.forEach(function(s){
+    s.track=M.addTextTrack('subtitles',embLabel(s),(s.lang||'und').slice(0,3));
+    s.track.mode='hidden';map[s.num]=s;
+  });
+  scanCtl=new AbortController();
+  var tick=setInterval(function(){if(menu.classList.contains('open')&&view==='subs')renderMenu()},1000);
+  fetch(STREAM,{signal:scanCtl.signal}).then(function(r){
+    scanTotal=parseInt(r.headers.get('content-length'),10)||0;
+    scanRd=new Rd(r.body.getReader());
+    return parseMkv(scanRd,{subs:map,onTracks:function(){},onBlock:function(s,start,payload){
+      var txt=cleanSub(s.codec,TD.decode(payload));
+      if(!txt)return null;
+      var cue=new VTTCue(start,start+3,txt);
+      s.track.addCue(cue);
+      return cue;
+    }});
+  }).catch(function(){}).then(function(){
+    clearInterval(tick);scanning=false;scanRd=null;
+    syncCC();
+    if(menu.classList.contains('open'))renderMenu();
+  });
+}
+function stopExtract(){if(scanCtl)scanCtl.abort()}
+
 function renderMenu(){
   var h='',tl=textList(),al=audioList();
+  var nAud=Math.max(al.length,emb.audio.length);
   if(view==='main'){
     if(isVideo){
       var a=activeSub();
-      h+='<button class="mi" data-go="subs"><span>'+ico('cc')+'</span><span class="l">Subtitles</span><span class="r">'+(a>-1?tLabel(tl[a],a):'Off')+ico('chev')+'</span></button>';
+      h+='<button class="mi" data-go="subs"><span>'+ico('cc')+'</span><span class="l">Subtitles</span><span class="r">'+(a>-1?esc(tLabel(tl[a],a)):'Off')+ico('chev')+'</span></button>';
     }
-    if(al.length>1){
+    if(nAud>1){
       var cur='';al.forEach(function(t,i){if(t.enabled)cur=tLabel(t,i)});
-      h+='<button class="mi" data-go="audio"><span>'+ico('audio')+'</span><span class="l">Audio track</span><span class="r">'+cur+ico('chev')+'</span></button>';
+      h+='<button class="mi" data-go="audio"><span>'+ico('audio')+'</span><span class="l">Audio track</span><span class="r">'+(cur?esc(cur):nAud+' tracks')+ico('chev')+'</span></button>';
     }
     h+='<button class="mi" data-go="speed"><span>'+ico('speed')+'</span><span class="l">Playback speed</span><span class="r">'+(M.playbackRate===1?'Normal':M.playbackRate+'x')+ico('chev')+'</span></button>';
     h+='<button class="mi" data-act="loop"><span>'+ico('loop')+'</span><span class="l">Loop</span><span class="r"><i class="sw'+(M.loop?' on':'')+'"></i></span></button>';
@@ -536,10 +745,27 @@ function renderMenu(){
     h+='<div class="mh"><button data-go="main">'+ico('chevl')+'Subtitles</button></div>';
     h+='<button class="mi'+(activeSub()<0?' sel':'')+'" data-sub="-1"><span class="ck">'+ico('check')+'</span><span class="l">Off</span></button>';
     tl.forEach(function(t,i){h+='<button class="mi'+(t.mode==='showing'?' sel':'')+'" data-sub="'+i+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(tLabel(t,i))+'</span></button>'});
+    if(!extracted){
+      emb.subs.forEach(function(s,i){
+        if(s.text)h+='<button class="mi" data-emb="'+i+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(embLabel(s))+'</span></button>';
+      });
+      if(emb.subs.some(function(s){return s.text}))h+='<div class="mnote">Embedded subtitles are read inside your browser. This streams the whole file once ('+esc(FSIZE)+') - no extra server load.</div>';
+    }else if(scanning){
+      var pct=scanTotal&&scanRd?Math.min(99,Math.floor(scanRd.total/scanTotal*100)):0;
+      h+='<button class="mi" data-act="stopscan"><span>'+ico('set')+'</span><span class="l">Reading subtitles... '+pct+'%</span><span class="r">Stop</span></button>';
+    }
+    var img=emb.subs.filter(function(s){return !s.text}).length;
+    if(img)h+='<div class="mnote">'+img+' image-based subtitle track'+(img>1?'s (PGS/VobSub) are':' (PGS/VobSub) is')+' not supported in browsers.</div>';
     h+='<button class="mi" data-act="file"><span>'+ico('up')+'</span><span class="l">Load .srt / .vtt file</span></button>';
   }else if(view==='audio'){
     h+='<div class="mh"><button data-go="main">'+ico('chevl')+'Audio track</button></div>';
-    al.forEach(function(t,i){h+='<button class="mi'+(t.enabled?' sel':'')+'" data-aud="'+i+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(tLabel(t,i))+'</span></button>'});
+    if(al.length>1){
+      al.forEach(function(t,i){h+='<button class="mi'+(t.enabled?' sel':'')+'" data-aud="'+i+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(tLabel(t,i))+'</span></button>'});
+    }else{
+      emb.audio.forEach(function(s,i){h+='<div class="mi dis'+(i===0?' sel':'')+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(embLabel(s))+'</span></div>'});
+      h+='<div class="mnote">This browser can only play the first audio track of a file. To switch language, open the stream link in VLC or MX Player (no server load).</div>';
+      h+='<button class="mi" data-act="copylink"><span>'+ico('link')+'</span><span class="l">Copy stream link</span></button>';
+    }
   }else{
     h+='<div class="mh"><button data-go="main">'+ico('chevl')+'Playback speed</button></div>';
     speeds.forEach(function(s){
@@ -557,11 +783,14 @@ function openMenu(o){
 bSet.addEventListener('click',function(e){e.stopPropagation();openMenu()});
 menu.addEventListener('click',function(e){
   e.stopPropagation();
-  var t=e.target.closest('[data-go],[data-act],[data-speed],[data-sub],[data-aud]');
+  var t=e.target.closest('[data-go],[data-act],[data-speed],[data-sub],[data-aud],[data-emb]');
   if(!t)return;
   if(t.dataset.go){view=t.dataset.go;renderMenu()}
   else if(t.dataset.sub!==undefined){setSub(parseInt(t.dataset.sub,10));renderMenu()}
   else if(t.dataset.aud!==undefined){setAudio(parseInt(t.dataset.aud,10));renderMenu()}
+  else if(t.dataset.emb!==undefined){var es=emb.subs[parseInt(t.dataset.emb,10)];startExtract();setSub(textList().indexOf(es.track));renderMenu()}
+  else if(t.dataset.act==='stopscan'){stopExtract()}
+  else if(t.dataset.act==='copylink'){cp.click()}
   else if(t.dataset.act==='file'){subFile.click()}
   else if(t.dataset.act==='loop'){M.loop=!M.loop;toast(M.loop?'Loop on':'Loop off');renderMenu()}
   else if(t.dataset.speed){setSpeed(parseFloat(t.dataset.speed));view='main';renderMenu()}
@@ -717,7 +946,7 @@ if('mediaSession' in navigator){
 }
 
 /* initial state: try autoplay, fall back to big play button */
-syncPlay();syncCC();showUI(true);
+syncPlay();syncCC();if(isVideo)probe();showUI(true);
 var ap=M.play();
 if(ap&&ap.catch)ap.catch(function(){
   autoMuted=true;M.muted=true;setTimeout(function(){autoMuted=false},50);
