@@ -125,6 +125,10 @@ body.theater .info{max-width:1280px;margin:0 auto;padding:16px 24px 0}
 .time{font-size:.85rem;margin-left:6px;white-space:nowrap;font-variant-numeric:tabular-nums;opacity:.95}
 .time span{opacity:.7}
 
+.cb.cc{display:none;position:relative}
+.cb.cc.has{display:grid}
+.cb.cc.on::after{content:"";position:absolute;left:10px;right:10px;bottom:7px;height:3px;border-radius:2px;background:var(--red)}
+.player video::cue{background:rgba(8,8,8,.75);color:#fff;font-family:Roboto,Arial,sans-serif;font-size:1.1em}
 /* settings */
 .menu{position:absolute;right:12px;bottom:68px;min-width:230px;background:rgba(28,28,28,.96);backdrop-filter:blur(8px);border-radius:12px;padding:8px 0;display:none;font-size:.9rem;box-shadow:0 8px 30px rgba(0,0,0,.5);max-height:80%;overflow:auto;z-index:5}
 .menu.open{display:block}
@@ -203,6 +207,9 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
 <symbol id="i-speed" viewBox="0 0 24 24"><path d="M20.380 8.570l-1.230 1.850a8 8 0 0 1-.22 7.580H5.070A8 8 0 0 1 15.580 6.850l1.850-1.230A10 10 0 0 0 3.350 19a2 2 0 0 0 1.720 1h13.850a2 2 0 0 0 1.740-1 10 10 0 0 0-.270-10.440zm-9.790 6.840a2 2 0 0 0 2.830 0l5.660-8.490-8.490 5.660a2 2 0 0 0 0 2.830z"/></symbol>
 <symbol id="i-loop" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z"/></symbol>
 <symbol id="i-quality" viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 14.500H7.500v-2h-2v2H4v-5h1.500v1.500h2V9.500H9zm5.500-2.500c0 .8-.7 1.500-1.500 1.500h-1v1H11v-5h2c.8 0 1.500.7 1.500 1.500zm5 2.500H18l-1-1.500-1 1.500h-1.500l1.800-2.500L14.800 9.500h1.500l.9 1.300.9-1.300h1.500l-1.700 2.500z"/></symbol>
+<symbol id="i-cc" viewBox="0 0 24 24"><path d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-8 7H9.500v-.5h-2v3h2V13H11v1a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1zm7 0h-1.500v-.5h-2v3h2V13H18v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1z"/></symbol>
+<symbol id="i-audio" viewBox="0 0 24 24"><path d="M12 3v10.550A4 4 0 1 0 14 17V7h4V3z"/></symbol>
+<symbol id="i-up" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></symbol>
 <symbol id="i-chev" viewBox="0 0 24 24"><path d="M10 6L8.600 7.400 13.200 12l-4.600 4.600L10 18l6-6z"/></symbol>
 <symbol id="i-chevl" viewBox="0 0 24 24"><path d="M15.400 7.400L14 6l-6 6 6 6 1.400-1.400L10.800 12z"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.200L4.800 12l-1.400 1.400L9 19 21 7l-1.400-1.400z"/></symbol>
@@ -236,6 +243,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
   <div class="shade"></div>
 
   <div class="menu" id="menu"></div>
+  <input type="file" id="subFile" accept=".srt,.vtt,text/vtt" style="display:none">
 
   <div class="controls" id="controls">
     <div class="progress" id="progress">
@@ -250,6 +258,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
       </div>
       <div class="time" id="time">0:00 <span>/ 0:00</span></div>
       <div class="sp"></div>
+      <button class="cb cc" id="bCC" aria-label="Subtitles (c)" title="Subtitles (c)"><svg><use href="#i-cc"/></svg></button>
       <button class="cb" id="bSet" aria-label="Settings" title="Settings"><svg><use href="#i-set"/></svg></button>
       {{if eq .Kind "video"}}
       <button class="cb" id="bPip" aria-label="Picture in picture (i)" title="Picture in picture (i)" style="display:none"><svg><use href="#i-pip"/></svg></button>
@@ -288,7 +297,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
     </div>
     {{if or (eq .Kind "video") (eq .Kind "audio")}}
     <div class="keys">
-      <span><kbd>Space</kbd>/<kbd>K</kbd> play</span><span><kbd>J</kbd> <kbd>L</kbd> ±10s</span><span><kbd>←</kbd> <kbd>→</kbd> ±5s</span><span><kbd>↑</kbd> <kbd>↓</kbd> volume</span><span><kbd>M</kbd> mute</span>{{if eq .Kind "video"}}<span><kbd>F</kbd> fullscreen</span><span><kbd>T</kbd> theater</span><span><kbd>I</kbd> mini</span>{{end}}<span><kbd>0-9</kbd> jump</span><span><kbd>&lt;</kbd> <kbd>&gt;</kbd> speed</span>
+      <span><kbd>Space</kbd>/<kbd>K</kbd> play</span><span><kbd>J</kbd> <kbd>L</kbd> ±10s</span><span><kbd>←</kbd> <kbd>→</kbd> ±5s</span><span><kbd>↑</kbd> <kbd>↓</kbd> volume</span><span><kbd>M</kbd> mute</span>{{if eq .Kind "video"}}<span><kbd>C</kbd> subtitles</span>{{end}}{{if eq .Kind "video"}}<span><kbd>F</kbd> fullscreen</span><span><kbd>T</kbd> theater</span><span><kbd>I</kbd> mini</span>{{end}}<span><kbd>0-9</kbd> jump</span><span><kbd>&lt;</kbd> <kbd>&gt;</kbd> speed</span>
     </div>
     {{end}}
   </div>
@@ -319,7 +328,7 @@ function $(id){return document.getElementById(id)}
 var bPlay=$('bPlay'),bMute=$('bMute'),vrange=$('vrange'),vol=$('vol'),timeEl=$('time'),
     prog=$('progress'),buf=$('buf'),played=$('played'),hov=$('hov'),thumb=$('thumb'),tip=$('tip'),
     toastEl=$('toast'),menu=$('menu'),bSet=$('bSet'),pulse=$('pulse');
-var bFs=$('bFs'),bPip=$('bPip'),bTheater=$('bTheater');
+var bCC=$('bCC'),bFs=$('bFs'),bPip=$('bPip'),bTheater=$('bTheater');
 
 function ico(name){return '<svg><use href="#i-'+name+'"/></svg>'}
 function setIcon(btn,name){btn.querySelector('use').setAttribute('href','#i-'+name)}
@@ -442,12 +451,95 @@ var ss=parseFloat(store('fsb:speed'));if(ss&&speeds.indexOf(ss)>-1)M.playbackRat
 
 /* settings menu */
 var view='main';
+function textList(){
+  var out=[],tt=M.textTracks||[];
+  for(var i=0;i<tt.length;i++){if(tt[i].kind==='subtitles'||tt[i].kind==='captions')out.push(tt[i])}
+  return out;
+}
+function audioList(){
+  var out=[],at=M.audioTracks;
+  if(!at)return out;
+  for(var i=0;i<at.length;i++)out.push(at[i]);
+  return out;
+}
+function tLabel(t,i){return t.label||(t.language?t.language.toUpperCase():'Track '+(i+1))}
+function activeSub(){var l=textList();for(var i=0;i<l.length;i++)if(l[i].mode==='showing')return i;return -1}
+function setSub(i){
+  var l=textList();
+  for(var k=0;k<l.length;k++)l[k].mode=(k===i)?'showing':'disabled';
+  store('fsb:subs',i>=0?'1':'0');
+  syncCC();
+}
+function setAudio(i){
+  var l=audioList();
+  for(var k=0;k<l.length;k++)l[k].enabled=(k===i);
+  toast('Audio: '+tLabel(l[i],i));
+}
+function syncCC(){
+  var has=textList().length>0;
+  bCC.classList.toggle('has',has);
+  bCC.classList.toggle('on',activeSub()>-1);
+}
+function toggleSubs(){
+  var l=textList();
+  if(!l.length){toast('No subtitles - load one in Settings');return}
+  if(activeSub()>-1){setSub(-1);toast('Subtitles off')}
+  else{setSub(0);toast('Subtitles on')}
+}
+bCC.addEventListener('click',function(e){e.stopPropagation();toggleSubs()});
+if(M.textTracks&&M.textTracks.addEventListener){
+  M.textTracks.addEventListener('addtrack',function(){
+    syncCC();
+    if(store('fsb:subs')==='1'&&activeSub()<0&&textList().length)setSub(0);
+    if(menu.classList.contains('open'))renderMenu();
+  });
+  M.textTracks.addEventListener('removetrack',syncCC);
+}
+if(M.audioTracks&&M.audioTracks.addEventListener){
+  M.audioTracks.addEventListener('addtrack',function(){if(menu.classList.contains('open'))renderMenu()});
+}
+/* load external .srt / .vtt (parsed once, no per-frame work) */
+var subFile=$('subFile');
+function srtToVtt(t){
+  t=t.replace(/^\uFEFF/,'').replace(/\r+\n?/g,'\n');
+  if(/^WEBVTT/.test(t))return t;
+  return 'WEBVTT\n\n'+t.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g,'$1.$2');
+}
+subFile.addEventListener('change',function(){
+  var f=subFile.files&&subFile.files[0];
+  if(!f)return;
+  f.text().then(function(txt){
+    var url=URL.createObjectURL(new Blob([srtToVtt(txt)],{type:'text/vtt'}));
+    var el=document.createElement('track');
+    el.kind='subtitles';el.label=f.name.replace(/\.[^.]+$/,'');el.src=url;
+    M.appendChild(el);
+    el.track.mode='disabled';
+    setTimeout(function(){setSub(textList().indexOf(el.track));toast('Subtitles loaded')},30);
+  }).catch(function(){toast('Could not read subtitle file')});
+  subFile.value='';
+});
 function renderMenu(){
-  var h='';
+  var h='',tl=textList(),al=audioList();
   if(view==='main'){
+    if(isVideo){
+      var a=activeSub();
+      h+='<button class="mi" data-go="subs"><span>'+ico('cc')+'</span><span class="l">Subtitles</span><span class="r">'+(a>-1?tLabel(tl[a],a):'Off')+ico('chev')+'</span></button>';
+    }
+    if(al.length>1){
+      var cur='';al.forEach(function(t,i){if(t.enabled)cur=tLabel(t,i)});
+      h+='<button class="mi" data-go="audio"><span>'+ico('audio')+'</span><span class="l">Audio track</span><span class="r">'+cur+ico('chev')+'</span></button>';
+    }
     h+='<button class="mi" data-go="speed"><span>'+ico('speed')+'</span><span class="l">Playback speed</span><span class="r">'+(M.playbackRate===1?'Normal':M.playbackRate+'x')+ico('chev')+'</span></button>';
     h+='<button class="mi" data-act="loop"><span>'+ico('loop')+'</span><span class="l">Loop</span><span class="r"><i class="sw'+(M.loop?' on':'')+'"></i></span></button>';
     h+='<div class="mi" style="cursor:default"><span>'+ico('quality')+'</span><span class="l">Quality</span><span class="r">Original</span></div>';
+  }else if(view==='subs'){
+    h+='<div class="mh"><button data-go="main">'+ico('chevl')+'Subtitles</button></div>';
+    h+='<button class="mi'+(activeSub()<0?' sel':'')+'" data-sub="-1"><span class="ck">'+ico('check')+'</span><span class="l">Off</span></button>';
+    tl.forEach(function(t,i){h+='<button class="mi'+(t.mode==='showing'?' sel':'')+'" data-sub="'+i+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(tLabel(t,i))+'</span></button>'});
+    h+='<button class="mi" data-act="file"><span>'+ico('up')+'</span><span class="l">Load .srt / .vtt file</span></button>';
+  }else if(view==='audio'){
+    h+='<div class="mh"><button data-go="main">'+ico('chevl')+'Audio track</button></div>';
+    al.forEach(function(t,i){h+='<button class="mi'+(t.enabled?' sel':'')+'" data-aud="'+i+'"><span class="ck">'+ico('check')+'</span><span class="l">'+esc(tLabel(t,i))+'</span></button>'});
   }else{
     h+='<div class="mh"><button data-go="main">'+ico('chevl')+'Playback speed</button></div>';
     speeds.forEach(function(s){
@@ -456,6 +548,7 @@ function renderMenu(){
   }
   menu.innerHTML=h;
 }
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function openMenu(o){
   if(o===undefined)o=!menu.classList.contains('open');
   menu.classList.toggle('open',o);
@@ -464,9 +557,12 @@ function openMenu(o){
 bSet.addEventListener('click',function(e){e.stopPropagation();openMenu()});
 menu.addEventListener('click',function(e){
   e.stopPropagation();
-  var t=e.target.closest('[data-go],[data-act],[data-speed]');
+  var t=e.target.closest('[data-go],[data-act],[data-speed],[data-sub],[data-aud]');
   if(!t)return;
   if(t.dataset.go){view=t.dataset.go;renderMenu()}
+  else if(t.dataset.sub!==undefined){setSub(parseInt(t.dataset.sub,10));renderMenu()}
+  else if(t.dataset.aud!==undefined){setAudio(parseInt(t.dataset.aud,10));renderMenu()}
+  else if(t.dataset.act==='file'){subFile.click()}
   else if(t.dataset.act==='loop'){M.loop=!M.loop;toast(M.loop?'Loop on':'Loop off');renderMenu()}
   else if(t.dataset.speed){setSpeed(parseFloat(t.dataset.speed));view='main';renderMenu()}
 });
@@ -585,6 +681,7 @@ document.addEventListener('keydown',function(e){
   else if((k==='f'||k==='F')&&isVideo)toggleFs();
   else if((k==='t'||k==='T')&&isVideo)toggleTheater();
   else if((k==='i'||k==='I')&&isVideo)togglePip();
+  else if((k==='c'||k==='C')&&isVideo)toggleSubs();
   else if(k==='Home'){M.currentTime=0}
   else if(k==='End'&&M.duration){M.currentTime=M.duration-0.1}
   else if(/^[0-9]$/.test(k)&&M.duration){M.currentTime=M.duration*parseInt(k,10)/10}
@@ -620,7 +717,7 @@ if('mediaSession' in navigator){
 }
 
 /* initial state: try autoplay, fall back to big play button */
-syncPlay();showUI(true);
+syncPlay();syncCC();showUI(true);
 var ap=M.play();
 if(ap&&ap.catch)ap.catch(function(){
   autoMuted=true;M.muted=true;setTimeout(function(){autoMuted=false},50);
