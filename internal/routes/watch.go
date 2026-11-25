@@ -2,7 +2,6 @@ package routes
 
 import (
 	"html/template"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
