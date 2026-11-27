@@ -1,17 +1,16 @@
-name: aharstream
+name: Ahar File Streamer
 
 services:
-  aharstream:
-    build: .
-    container_name: aharstream
+  fsb-run:
+    image: ghcr.io/everythingsuckz/fsb
+    container_name: fsb
     restart: always
-    environment:
-      PORT: "8080"
-    ports:
-      - "8080:8080"
     volumes:
-      - ./data:/app/data
       - ./logs:/app/logs
+      - ./data:/app/data
       - ./fsb.env:/app/fsb.env
+    ports:
+      - "${PORT:-8038}:${PORT:-8038}"
     env_file:
-      - ./fsb.env
+      - path: ./fsb.env
+        required: true

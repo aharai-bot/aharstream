@@ -62,6 +62,7 @@
 .toast.err{border-color:rgba(255,90,110,.6)}
 </style></head>
 <body>
+<script>if('scrollRestoration' in history)history.scrollRestoration='manual';window.addEventListener('load',function(){window.scrollTo(0,0);setTimeout(function(){window.scrollTo(0,0)},150)});</script>
 <div class="top"><div class="wrap">
   <a class="brand" href="/"><i>{{template "logo"}}</i><span>{{.BotName}}</span></a>
   <div id="topright" class="hide" style="display:flex;gap:8px;align-items:center">
@@ -163,7 +164,7 @@ function loadTG(cb){
   if(!inTG){cb(null);return}
   var s=document.createElement('script');s.src='https://telegram.org/js/telegram-web-app.js';
   s.onload=function(){
-    try{var w=window.Telegram.WebApp;w.ready();w.expand();w.setHeaderColor('#0b0b0f');w.setBackgroundColor('#0b0b0f');cb(w)}catch(e){cb(null)}
+    try{var w=window.Telegram.WebApp;w.ready();w.expand();try{document.documentElement.style.setProperty('--tg-safe-area-inset-top',((w.safeAreaInset&&w.safeAreaInset.top)||0)+'px');document.documentElement.style.setProperty('--tg-content-safe-area-inset-top',((w.contentSafeAreaInset&&w.contentSafeAreaInset.top)||0)+'px')}catch(_){}w.setHeaderColor('#0b0b0f');w.setBackgroundColor('#0b0b0f');cb(w)}catch(e){cb(null)}
   };
   s.onerror=function(){cb(null)};
   document.head.appendChild(s);

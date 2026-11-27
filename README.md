@@ -1,12 +1,10 @@
 <h1 align="center">⚡ Ahar File Streamer</h1>
 <p align="center">
   A Telegram bot that turns any file into a <b>fast, direct, streamable link</b> —<br>
-  with a web player, Mini App, expiring links, passwords, an API and a full admin toolkit.
+  with a web player, expiring links, download stats and a full admin toolkit.
 </p>
-<p align="center"><b>Remodified by Ahar Developers</b></p>
 
 Built on [TG-FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot) by EverythingSuckz (AGPL-3.0).
-Repository: <https://github.com/aharai-bot/aharstream>
 
 ## ✨ Features
 
@@ -89,25 +87,16 @@ Repository: <https://github.com/aharai-bot/aharstream>
 
 ## 🚀 Deploy
 
-Repository: **https://github.com/aharai-bot/aharstream**
+> The buttons need the URL of **your** GitHub repository: replace `YOUR_USER/YOUR_REPO` (they have not been tested from here).
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/aharai-bot/aharstream)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aharai-bot/aharstream)
-[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?name=aharstream&type=git&repository=github.com/aharai-bot/aharstream&branch=main&builder=dockerfile&ports=8080;http;/&env[PORT]=8080&env[API_ID]=&env[API_HASH]=&env[BOT_TOKEN]=&env[LOG_CHANNEL]=&env[ADMINS]=&env[HOST]=)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/YOUR_USER/YOUR_REPO)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/YOUR_USER/YOUR_REPO)
 
-> The deploy buttons and steps below have not been tested end to end. If a button does not open the right page, use the manual steps next to it.
-
-| Host | How |
-|---|---|
-| **Heroku** | Use the button above. It reads `app.json` and the `Procfile`. |
-| **Render** | Use the button above. It reads `render.yaml` (Blueprint) – fill in the secrets it asks for. |
-| **Koyeb** | Use the button above, or *Create service → GitHub → `aharai-bot/aharstream` → builder: Dockerfile*, port `8080`. Fill in the variables listed below. |
-| **Railway** | *New Project → Deploy from GitHub repo → `aharai-bot/aharstream`*. It builds the `Dockerfile` (`railway.json`). Add the variables below, then *Settings → Networking → Generate domain* and put that URL in `HOST`. |
-| **Fly.io** | `git clone https://github.com/aharai-bot/aharstream && cd aharstream`<br>`fly launch` (it detects the `Dockerfile`; use internal port `8080`)<br>`fly volumes create ahar_data --size 1`, mount it at `/app/data` in `fly.toml`<br>`fly secrets set API_ID=… API_HASH=… BOT_TOKEN=… LOG_CHANNEL=… ADMINS=… HOST=https://<app>.fly.dev`<br>`fly deploy` |
-| **runsite.app** | Create a new service from the GitHub repo `aharai-bot/aharstream`, choose the `Dockerfile` build, set port `8080` and add the variables below. (I could not confirm a one-click button format for runsite.app, so use their dashboard.) |
-| **Docker** | `git clone https://github.com/aharai-bot/aharstream && cd aharstream`<br>`touch fsb.env && docker compose up -d`<br>Then open `http://<server>:8038/?token=<token from the logs>` to finish setup. |
-
-**Variables to set on every host:** `API_ID`, `API_HASH`, `BOT_TOKEN`, `LOG_CHANNEL`, `ADMINS`, `HOST` (your public `https://` URL), `PORT=8080`.
+- **Render** reads `render.yaml` (Blueprint) – fill in the secrets it asks for.
+- **Railway** – *New Project → Deploy from GitHub repo*; it builds the `Dockerfile` (`railway.json`). Add the variables below.
+- **Koyeb** – *Create service → GitHub → builder: Dockerfile*, port `8080`.
+- **Docker** – `touch fsb.env && docker compose up -d`, then open `http://<server>:8038/?token=<token from the logs>`.
+- **Heroku** – uses `app.json` and the `Procfile`.
 
 Free hosts usually have a disk that is wiped on restart: use a persistent volume for `data/` (the database) or your links, users and stats are lost.
 
@@ -152,7 +141,7 @@ All original variables (`MULTI_TOKEN*`, `ALLOWED_USERS`, `STREAM_*`, …) keep w
 
 ### HTTP endpoints
 
-- `GET /` – home page in a browser, status JSON for API clients · `GET /health` – liveness · `GET /api/stats` – public totals
+- `GET /` – status JSON · `GET /health` – liveness · `GET /api/stats` – public totals
 - `GET /stream/<id>?hash=<hash>[&d=true]` – file stream (Range supported)
 - `GET /watch/<id>?hash=<hash>` – web player (shows an unlock page for password-protected links)
 - `GET /app` – My Files app · `GET /docs` – API documentation · `GET /c/<id>?k=<token>` – shared collection
@@ -164,11 +153,10 @@ All original variables (`MULTI_TOKEN*`, `ALLOWED_USERS`, `STREAM_*`, …) keep w
 - Countries are only recorded when your host or CDN sends a country header (e.g. Cloudflare `CF-IPCountry`); there is no GeoIP database.
 - The in-Telegram Mini App and menu button need `HOST` to be an `https://` URL. The Telegram login button on `/app` also needs `/setdomain` in @BotFather.
 - Webhook URLs must be `https` and cannot point to private or local addresses.
+
+## Notes
 - Links created before upgrading keep working (they simply have no stats/expiry record).
 - Revoked and expired links return `410 Gone`.
 
 ## License
 GNU AGPL-3.0 — forks must stay open source under the same license. See `LICENSE`.
-
----
-<p align="center"><b>Remodified by Ahar Developers</b> · <a href="https://github.com/aharai-bot/aharstream">github.com/aharai-bot/aharstream</a></p>
