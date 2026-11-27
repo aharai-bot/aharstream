@@ -2,10 +2,12 @@ package main
 
 import (
 	"EverythingSuckz/fsb/config"
+	"EverythingSuckz/fsb/internal/auth"
 	"EverythingSuckz/fsb/internal/bot"
 	"EverythingSuckz/fsb/internal/cache"
 	"EverythingSuckz/fsb/internal/commands"
 	"EverythingSuckz/fsb/internal/routes"
+	"EverythingSuckz/fsb/internal/setup"
 	"EverythingSuckz/fsb/internal/store"
 	"EverythingSuckz/fsb/internal/types"
 	"EverythingSuckz/fsb/internal/utils"
@@ -13,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -34,6 +37,14 @@ var startTime time.Time = time.Now()
 func runApp(cmd *cobra.Command, args []string) {
 	// initialize logger early so config loading is logged to file
 	utils.InitLogger(false)
+	// First run: if the required settings are missing, open the setup wizard
+	// (skipped when they are all given as command-line flags).
+	if !credentialsFromFlags(cmd) {
+		err := setup.RunIfNeeded(func(format string, a ...any) { utils.Logger.Sugar().Infof(format, a...) })
+		if err != nil {
+			utils.Logger.Sugar().Fatalf("Setup failed: %v", err)
+		}
+	}
 	config.Load(utils.Logger, cmd)
 	// reinitialize with correct dev mode
 	utils.InitLogger(config.ValueOf.Dev)
@@ -41,6 +52,10 @@ func runApp(cmd *cobra.Command, args []string) {
 	mainLogger := log.Named("Main")
 	mainLogger.Info("Starting Ahar File Streamer")
 	utils.Version = versionString
+	auth.Init(config.ValueOf.BotToken, os.Getenv("SESSION_SECRET"))
+	if len(config.ValueOf.Host) > 0 && !strings.HasPrefix(config.ValueOf.Host, "https://") {
+		mainLogger.Info("HOST is not https: the in-Telegram Mini App and menu button are disabled until HOST is an https URL")
+	}
 
 	if err := store.Init(config.ValueOf.DBPath); err != nil {
 		mainLogger.Sugar().Fatalf("Failed to open database %s: %v", config.ValueOf.DBPath, err)
@@ -126,4 +141,14 @@ func startBackgroundJobs(log *zap.Logger) {
 			}
 		}
 	}()
+}
+
+// credentialsFromFlags reports whether every required setting was passed as a flag.
+func credentialsFromFlags(cmd *cobra.Command) bool {
+	for _, f := range []string{"api-id", "api-hash", "bot-token", "log-channel"} {
+		if !cmd.Flags().Changed(f) {
+			return false
+		}
+	}
+	return true
 }

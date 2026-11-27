@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"EverythingSuckz/fsb/config"
+	"EverythingSuckz/fsb/internal/i18n"
 	"EverythingSuckz/fsb/internal/store"
 	"EverythingSuckz/fsb/internal/utils"
 
@@ -40,18 +41,19 @@ func fileStatus(rec store.FileRecord) string {
 }
 
 func myFilesText(userID int64) []part {
+	lang := userLang(userID)
 	files := store.Default.FilesOf(userID, 10)
 	if len(files) == 0 {
-		return parts(b("📂 My files"), nl(), nl(), p("You have no links yet. Send me a file to create one!"))
+		return parts(b(i18n.T(lang, "files_title")), nl(), nl(), p(i18n.T(lang, "files_empty")))
 	}
-	ps := parts(b("📂 Your latest links"), nl(), nl())
+	ps := parts(b(i18n.T(lang, "files_title")), nl(), nl())
 	for idx, f := range files {
 		ps = append(ps,
 			b(fmt.Sprintf("%d. ", idx+1)), p(utils.ShortName(f.Name, 40)), nl(),
 			p("   "+utils.HumanSize(f.Size)+" • ⬇️ "+strconv.FormatInt(f.Downloads, 10)+" • "+fileStatus(f)+" • ID "), c(fmt.Sprint(f.MessageID)), nl(),
 		)
 	}
-	ps = append(ps, nl(), i("Disable a link with /revoke <id>"))
+	ps = append(ps, nl(), i("/revoke <id> · "+i18n.T(lang, "files_hint")))
 	return ps
 }
 
@@ -250,7 +252,7 @@ func relink(ctx *ext.Context, u *ext.Update) error {
 		}
 		return endGroups()
 	}
-	text, markup := linkMessage(rec)
+	text, markup := linkMessage(rec, userLang(id))
 	_, _ = ctx.Reply(u, ext.ReplyTextStyledTextArray(text), &ext.ReplyOpts{Markup: markup, NoWebpage: true, ReplyToMessageId: rm.ID})
 	return endGroups()
 }
@@ -279,7 +281,8 @@ func onCallback(ctx *ext.Context, u *ext.Update) error {
 	}
 	data := string(cb.Data)
 	answered := false
-	back := kb([]tg.KeyboardButtonClass{btnCB("🏠 Home", "ahar:home")})
+	lang := userLang(uid)
+	back := kb([]tg.KeyboardButtonClass{btnCB(i18n.T(lang, "btn_home"), "ahar:home")})
 
 	switch {
 	case data == "ahar:home":
@@ -287,7 +290,7 @@ func onCallback(ctx *ext.Context, u *ext.Update) error {
 		if eu := u.EffectiveUser(); eu != nil {
 			name = eu.FirstName
 		}
-		editText(ctx, uid, cb.MsgID, homeText(name), homeKeyboard())
+		editText(ctx, uid, cb.MsgID, homeText(name, lang), homeKeyboard(lang))
 	case data == "ahar:help":
 		editText(ctx, uid, cb.MsgID, helpText(IsAdmin(uid), IsOwner(uid)), back)
 	case data == "ahar:about":
@@ -313,6 +316,29 @@ func onCallback(ctx *ext.Context, u *ext.Update) error {
 		answerCB(ctx, cb, "Link revoked ✅", false)
 		answered = true
 		editText(ctx, uid, cb.MsgID, parts(b("🗑 Link revoked"), nl(), p(utils.ShortName(rec.Name, 60)+" can no longer be accessed.")), back)
+	case data == "ahar:langmenu":
+		editText(ctx, uid, cb.MsgID, parts(b(i18n.T(lang, "lang_choose"))), langKeyboard())
+	case strings.HasPrefix(data, "ahar:lang:"):
+		code := strings.TrimPrefix(data, "ahar:lang:")
+		if i18n.Valid(code) {
+			store.Default.SetLang(uid, code)
+			lang = code
+			name := ""
+			if eu := u.EffectiveUser(); eu != nil {
+				name = eu.FirstName
+			}
+			editText(ctx, uid, cb.MsgID, homeText(name, lang), homeKeyboard(lang))
+			answerCB(ctx, cb, i18n.T(lang, "lang_set", i18n.Name(lang)), false)
+			answered = true
+		}
+	case strings.HasPrefix(data, "ahar:ex:"), strings.HasPrefix(data, "ahar:vw:"), strings.HasPrefix(data, "ahar:pw:"):
+		if linkSettingCallback(ctx, cb, uid, lang, data) {
+			answered = true
+		}
+	case strings.HasPrefix(data, "ahar:ch:"):
+		if channelDecision(ctx, cb, uid, data) {
+			answered = true
+		}
 	case strings.HasPrefix(data, "ahar:adm"):
 		if !IsAdmin(uid) {
 			answerCB(ctx, cb, "Admins only.", true)

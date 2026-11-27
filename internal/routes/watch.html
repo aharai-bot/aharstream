@@ -289,7 +289,7 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
   <div class="chrow">
     <div class="chan"><div class="avatar"><svg><use href="#i-logo"/></svg></div><div><b>{{.BotName}}</b><small>{{.KindLabel}} · {{.Size}}</small></div></div>
     <div class="acts">
-      <a class="pill pri" href="{{.DownloadURL}}"><svg><use href="#i-dl"/></svg>Download</a>
+      <a class="pill pri" id="dl" href="{{.DownloadURL}}"><svg><use href="#i-dl"/></svg>Download</a>
       <button class="pill" id="copy"><svg><use href="#i-link"/></svg><span>Copy link</span></button>
     </div>
   </div>
@@ -300,6 +300,8 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
       <div><small>Size</small>{{.Size}}</div>
       <div><small>Downloads</small>{{.Downloads}}</div>
       <div><small>Link expires</small>{{.Expires}}</div>
+      {{if .Views}}<div><small>Views</small>{{.Views}}</div>{{end}}
+      {{if .Protected}}<div><small>Access</small>🔒 Password protected</div>{{end}}
     </div>
     {{if or (eq .Kind "video") (eq .Kind "audio")}}
     <div class="keys">
@@ -316,6 +318,18 @@ kbd{background:var(--chip);border-radius:4px;padding:1px 6px;font-family:inherit
 var STREAM={{.StreamURL}};
 var NAME={{.Name}};
 var BOT={{.BotName}};
+
+/* Telegram Mini App: expand to full height and open downloads in the system browser */
+var inTG=location.hash.indexOf('tgWebAppData')>-1;
+if(inTG){
+  var tgs=document.createElement('script');tgs.src='https://telegram.org/js/telegram-web-app.js';
+  tgs.onload=function(){try{var w=Telegram.WebApp;w.ready();w.expand();w.setHeaderColor('#0f0f0f');w.setBackgroundColor('#0f0f0f')}catch(e){}};
+  document.head.appendChild(tgs);
+}
+var dl=document.getElementById('dl');
+if(dl)dl.addEventListener('click',function(e){
+  if(inTG&&window.Telegram&&Telegram.WebApp&&Telegram.WebApp.openLink){e.preventDefault();Telegram.WebApp.openLink(location.origin+dl.getAttribute('href'))}
+});
 
 /* copy link */
 var cp=document.getElementById('copy');

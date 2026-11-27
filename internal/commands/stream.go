@@ -3,6 +3,8 @@ package commands
 import (
 	"strings"
 
+	"EverythingSuckz/fsb/internal/i18n"
+
 	"github.com/celestix/gotgproto/dispatcher"
 	"github.com/celestix/gotgproto/dispatcher/handlers"
 	"github.com/celestix/gotgproto/ext"
@@ -22,11 +24,20 @@ func sendLink(ctx *ext.Context, u *ext.Update) error {
 		return endGroups()
 	}
 	msg := u.EffectiveMessage
+	lang := userLang(userID)
 	if msg.Media == nil {
 		if strings.HasPrefix(strings.TrimSpace(msg.Text), "/") {
-			reply(ctx, u, p("🤔 Unknown command. Send /help to see what I can do."))
+			if strings.EqualFold(strings.Fields(msg.Text)[0], "/cancel") {
+				if clearPending(userID) {
+					reply(ctx, u, p(i18n.T(lang, "cancelled")))
+				}
+				return endGroups()
+			}
+			reply(ctx, u, p(i18n.T(lang, "unknown_cmd")))
+		} else if handlePendingText(ctx, u, userID, lang) {
+			return endGroups()
 		} else {
-			reply(ctx, u, p("📎 Send me any file, video, audio, photo or document and I'll give you a direct link.\n\nSee /help for everything else."))
+			reply(ctx, u, p(i18n.T(lang, "send_file")))
 		}
 		return endGroups()
 	}
@@ -39,7 +50,7 @@ func sendLink(ctx *ext.Context, u *ext.Update) error {
 		}
 		return endGroups()
 	}
-	text, markup := linkMessage(rec)
+	text, markup := linkMessage(rec, lang)
 	_, _ = ctx.Reply(u, ext.ReplyTextStyledTextArray(text), &ext.ReplyOpts{
 		Markup:           markup,
 		NoWebpage:        true,

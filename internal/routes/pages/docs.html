@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0b0f">
+<title>API &amp; Webhooks · {{.BotName}}</title>
+{{template "favicon"}}
+<style>{{template "css"}}
+.wrap{max-width:860px}
+h1{font-size:clamp(1.7rem,5vw,2.4rem);letter-spacing:-.8px;margin:34px 0 6px}
+h2{margin:40px 0 8px;font-size:1.35rem;letter-spacing:-.4px}
+h3{margin:22px 0 6px;font-size:1.02rem}
+p,li{color:#d4d4e0}
+pre{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;overflow:auto;font-size:.85rem;line-height:1.55;margin:10px 0}
+pre code{background:none;padding:0}
+.ep{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0;flex-wrap:wrap}
+.m{font-weight:700;font-size:.78rem;padding:3px 9px;border-radius:7px;letter-spacing:.5px}
+.m.get{background:rgba(46,229,157,.14);color:var(--ok)}
+.m.post{background:rgba(62,166,255,.15);color:#6cb8ff}
+.m.del{background:rgba(255,90,110,.15);color:var(--bad)}
+.ep span.d{color:var(--muted);font-size:.9rem;flex:1;min-width:200px}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.92rem}
+td,th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:.8rem;text-transform:uppercase;letter-spacing:.7px}
+.note{border-left:3px solid var(--warn);background:rgba(255,176,32,.08);padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0;color:#e8d9b5}
+nav.toc{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+nav.toc a{padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.85rem}
+nav.toc a:hover{border-color:rgba(255,0,51,.5)}
+</style></head>
+<body>
+<div class="top"><div class="wrap"><a class="brand" href="/"><i>{{template "logo"}}</i>{{.BotName}}</a><a class="btn sm" href="/app">My Files</a></div></div>
+<div class="wrap">
+<h1>API &amp; Webhooks</h1>
+<p class="muted">Create and manage links from your own code. Base URL: <code>{{.Host}}</code></p>
+<nav class="toc"><a href="#auth">Authentication</a><a href="#endpoints">Endpoints</a><a href="#create">Creating links</a><a href="#webhooks">Webhooks</a><a href="#telegram">Telegram features</a></nav>
+
+<h2 id="auth">Authentication</h2>
+<p>Create a key in the bot with <code>/apikey new my-app</code> or on the Developers tab of the <a href="/app" style="text-decoration:underline">My Files</a> page. The key is shown once. Send it with every request:</p>
+<pre><code>curl {{.Host}}/api/v1/files \
+  -H "Authorization: Bearer fsb_xxxxxxxx"</code></pre>
+<p>You can also use the <code>X-API-Key</code> header. Limit: 120 requests per minute per key. A key can only see and change the links of its owner.</p>
+
+<h2 id="endpoints">Endpoints</h2>
+<div class="ep"><span class="m get">GET</span><code>/api/v1/me</code><span class="d">Your storage summary</span></div>
+<div class="ep"><span class="m get">GET</span><code>/api/v1/files?q=&amp;folder=&amp;limit=</code><span class="d">List links, newest first (limit up to 500)</span></div>
+<div class="ep"><span class="m get">GET</span><code>/api/v1/files/{id}</code><span class="d">One link with views, downloads, countries and devices</span></div>
+<div class="ep"><span class="m del">DELETE</span><code>/api/v1/files/{id}</code><span class="d">Revoke a link (it stops working immediately)</span></div>
+<div class="ep"><span class="m post">PATCH</span><code>/api/v1/files/{id}</code><span class="d">Change expiry, password, view limit, folder, name</span></div>
+
+<h2 id="create">How links are created</h2>
+<p>Links are made by the bot: <b>send a file to the bot</b> (from the Telegram app, or from your own code with a user client such as Telethon or Pyrogram) and it replies with a link. Your service can learn about every new link in two ways:</p>
+<ul><li>Subscribe to the <code>link.created</code> <a href="#webhooks" style="text-decoration:underline">webhook</a>, which is pushed to you instantly, or</li>
+<li>poll <code>GET /api/v1/files</code> (newest first).</li></ul>
+<p>Then use <code>PATCH /api/v1/files/{id}</code> to set expiry, password, view limit, folder or name:</p>
+<pre><code>curl -X PATCH {{.Host}}/api/v1/files/1234 \
+  -H "Authorization: Bearer fsb_xxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"expiry_hours": 24, "max_views": 1, "password": "s3cret", "folder": "Course"}'</code></pre>
+<table>
+<tr><th>Field</th><th>Meaning</th></tr>
+<tr><td><code>name</code></td><td>Display name (1-200 characters).</td></tr>
+<tr><td><code>folder</code></td><td>Label to group links (up to 40 characters, empty to clear).</td></tr>
+<tr><td><code>expiry_hours</code></td><td><code>-1</code> = never expires, otherwise 1-8760 hours from now.</td></tr>
+<tr><td><code>max_views</code></td><td><code>1</code> makes a one-time link. <code>0</code> = unlimited. Setting a limit restarts the count.</td></tr>
+<tr><td><code>password</code></td><td>4-100 characters. Requires the web player. Use <code>"clear_password": true</code> to remove it.</td></tr>
+<tr><td><code>revoked</code></td><td><code>true</code> disables the link, <code>false</code> enables it again.</td></tr>
+</table>
+<p>Responses look like this:</p>
+<pre><code>{
+  "id": 1234, "name": "movie.mkv", "size": 1048576000, "mime": "video/x-matroska",
+  "status": "active", "protected": true, "max_views": 1, "views": 0,
+  "downloads": 0, "countries": {"IN": 2}, "devices": {"Mobile": 1, "Desktop": 1},
+  "watch_url": "{{.Host}}/watch/1234?hash=abc123"
+}</code></pre>
+<div class="note">Links with a password do not include <code>stream_url</code> or <code>download_url</code>: visitors open <code>watch_url</code> and enter the password.</div>
+
+<h2 id="webhooks">Webhooks</h2>
+<p>Set an HTTPS URL with <code>/webhook https://example.com/hook</code> (or on the Developers tab). Private and local addresses are blocked. Events:</p>
+<table>
+<tr><th>Event</th><th>When</th></tr>
+<tr><td><code>link.created</code></td><td>A new link was made (bot or channel); the data holds the link URLs</td></tr>
+<tr><td><code>link.viewed</code></td><td>A new visitor opened a link (one per visitor per 10 minutes; link previews are ignored)</td></tr>
+<tr><td><code>ping</code></td><td>Test event from <code>/webhook test</code></td></tr>
+</table>
+<pre><code>POST /your-endpoint
+X-Fsb-Event: link.viewed
+X-Fsb-Signature: sha256=3f1c...e9
+
+{"event":"link.viewed","time":1767225600,"data":{"id":1234,"name":"movie.mkv","device":"Mobile","country":"IN","views":3}}</code></pre>
+<h3>Verify the signature</h3>
+<p>The signature is the HMAC-SHA256 of the raw request body, using your signing secret (shown by <code>/webhook</code>).</p>
+<pre><code># Python
+import hmac, hashlib
+def valid(body: bytes, header: str, secret: str) -&gt; bool:
+    mac = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest("sha256=" + mac, header)
+
+// Node.js
+const crypto = require("crypto");
+const ok = (body, header, secret) =&gt;
+  header === "sha256=" + crypto.createHmac("sha256", secret).update(body).digest("hex");</code></pre>
+<p>Reply with any <code>2xx</code> status. A failed delivery is retried once after 2 seconds.</p>
+<div class="note"><code>country</code> is filled only when your host or CDN sends a country header (for example Cloudflare's <code>CF-IPCountry</code>). Otherwise it is <code>??</code>.</div>
+
+<h2 id="telegram">Telegram features</h2>
+<h3>Mini App</h3>
+<p>Set <code>HOST</code> to your public <b>https</b> URL. The bot then shows an <b>Open App</b> button and a menu button that open <code>{{.Host}}/app</code> inside Telegram, where users are signed in automatically.</p>
+<h3>Inline mode</h3>
+<p>Enable it once with @BotFather: <code>/setinline</code>. Then type <code>@yourbot</code> (optionally followed by part of a file name) in any chat to share one of your links.</p>
+<h3>Channel mode</h3>
+<p>Add the bot as an admin of your channel (it needs permission to edit messages) and post <code>/watchbuttons</code> there. The bot owner approves the request, and every new media post in that channel gets Watch and Download buttons. Post <code>/watchbuttons off</code> to stop.</p>
+<footer class="f">{{.BotName}} · Remodified by <b>Ahar Developers</b></footer>
+</div></body></html>

@@ -1,0 +1,30 @@
+# Render Blueprint - used by the "Deploy to Render" button.
+services:
+  - type: web
+    name: ahar-file-streamer
+    runtime: docker
+    plan: starter            # a persistent disk needs a paid plan; free plans lose data on restart
+    healthCheckPath: /health
+    envVars:
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: LOG_CHANNEL
+        sync: false
+      - key: ADMINS
+        sync: false
+      - key: HOST
+        sync: false           # your https URL, e.g. https://ahar-file-streamer.onrender.com
+      - key: PORT
+        value: "8080"
+      - key: BOT_NAME
+        value: Ahar File Streamer
+      - key: DB_PATH
+        value: /app/data/ahar.json
+    disk:
+      name: ahar-data
+      mountPath: /app/data
+      sizeGB: 1

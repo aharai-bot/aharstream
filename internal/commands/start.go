@@ -2,6 +2,7 @@ package commands
 
 import (
 	"EverythingSuckz/fsb/config"
+	"EverythingSuckz/fsb/internal/i18n"
 
 	"github.com/celestix/gotgproto/dispatcher"
 	"github.com/celestix/gotgproto/dispatcher/handlers"
@@ -15,43 +16,41 @@ func (m *command) LoadStart(d dispatcher.Dispatcher) {
 	d.AddHandler(handlers.NewCommand("start", start))
 }
 
-func homeKeyboard() *tg.ReplyInlineMarkup {
+func homeKeyboard(lang string) *tg.ReplyInlineMarkup {
 	rows := [][]tg.KeyboardButtonClass{
-		{btnCB("📖 Help", "ahar:help"), btnCB("📂 My Files", "ahar:files")},
-		{btnCB("ℹ️ About", "ahar:about")},
+		{btnCB(i18n.T(lang, "btn_help"), "ahar:help"), btnCB(i18n.T(lang, "btn_files"), "ahar:files")},
+		{btnCB(i18n.T(lang, "btn_about"), "ahar:about"), btnCB(i18n.T(lang, "btn_lang"), "ahar:langmenu")},
+	}
+	if isHTTPS() {
+		rows = append([][]tg.KeyboardButtonClass{{&tg.KeyboardButtonWebView{Text: i18n.T(lang, "btn_openapp"), URL: config.ValueOf.Host + "/app"}}}, rows...)
 	}
 	if config.ValueOf.SupportURL != "" {
-		rows[1] = append(rows[1], btnURL("💬 Support", config.ValueOf.SupportURL))
+		rows[len(rows)-1] = append(rows[len(rows)-1], btnURL("💬 Support", config.ValueOf.SupportURL))
 	}
 	return kb(rows...)
 }
 
-func homeText(name string) []part {
+func homeText(name, lang string) []part {
 	if name == "" {
 		name = "there"
 	}
 	return parts(
-		b("👋 Hey "+name+"!"), nl(), nl(),
-		p("Welcome to "), b(config.ValueOf.BotName), p(" ⚡"), nl(), nl(),
-		p("Send me any file, video, audio, photo or document and I'll instantly give you a "),
-		b("direct download & streaming link"), p("."), nl(), nl(),
-		b("✨ What you get"), nl(),
-		p("• 🚀 Fast multi-bot streaming with seeking"), nl(),
-		p("• 🎞 A web player for videos, audio, images and PDFs"), nl(),
-		p("• ⏳ Expiring links and 🗑 one-tap revoke"), nl(),
-		p("• 📊 Download counters for every link"), nl(), nl(),
-		i("Just send a file to begin — or tap Help below."),
+		b(i18n.T(lang, "welcome_title", name)), nl(), nl(),
+		p(i18n.T(lang, "welcome_body", config.ValueOf.BotName)), nl(), nl(),
+		i(i18n.T(lang, "welcome_hint")),
 	)
 }
 
 func start(ctx *ext.Context, u *ext.Update) error {
-	if _, ok := gate(ctx, u); !ok {
+	id, ok := gate(ctx, u)
+	if !ok {
 		return endGroups()
 	}
 	name := ""
 	if eu := u.EffectiveUser(); eu != nil {
 		name = eu.FirstName
 	}
-	replyKb(ctx, u, homeKeyboard(), homeText(name)...)
+	lang := userLang(id)
+	replyKb(ctx, u, homeKeyboard(lang), homeText(name, lang)...)
 	return endGroups()
 }

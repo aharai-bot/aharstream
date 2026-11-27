@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0f"><meta name="robots" content="noindex">
+<title>My Files · {{.BotName}}</title>
+{{template "favicon"}}
+<style>{{template "css"}}
+.wrap{padding-bottom:60px}
+.hide{display:none!important}
+.chip{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:.88rem;max-width:180px}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.langsel{width:auto;height:34px;border-radius:999px;font-size:.85rem;padding:0 30px 0 12px;background-position:calc(100% - 16px) 14px,calc(100% - 11px) 14px}
+.signin{max-width:460px;margin:60px auto;text-align:center}
+.signin h1{margin:6px 0 8px}
+.signin ol{text-align:left;color:#d4d4e0;padding-left:20px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:22px 0 8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.stat b{display:block;font-size:1.35rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat span{color:var(--muted);font-size:.8rem}
+.tabs{display:flex;gap:6px;margin:18px 0 14px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{padding:10px 16px;border-radius:10px 10px 0 0;color:var(--muted);font-weight:600;white-space:nowrap;border-bottom:2px solid transparent}
+.tab.on{color:#fff;border-color:var(--red)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar input[type=search]{flex:1;min-width:160px}
+.bar select{width:auto;min-width:130px}
+.list{display:grid;gap:10px}
+.row{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.row.sel{border-color:rgba(255,0,51,.55)}
+.row .cb{width:20px;height:20px;accent-color:#ff0033;flex:none}
+.row .k{font-size:1.5rem;width:34px;text-align:center;flex:none}
+.row .info{flex:1;min-width:0}
+.row .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.row .meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--muted);font-size:.8rem;margin-top:2px}
+.row .acts{display:flex;gap:6px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.badge{padding:1px 8px;border-radius:999px;font-size:.72rem;font-weight:600}
+.b-active{background:rgba(46,229,157,.14);color:var(--ok)}
+.b-expired{background:rgba(255,176,32,.14);color:var(--warn)}
+.b-revoked{background:rgba(255,90,110,.14);color:var(--bad)}
+.b-tag{background:rgba(255,255,255,.08);color:#d4d4e0}
+.empty{text-align:center;color:var(--muted);padding:44px 10px}
+@media (max-width:700px){.row{flex-wrap:wrap}.row .acts{width:100%;justify-content:flex-start}}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+.modal.on{display:flex}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:20px}
+@media (min-width:700px){.modal{align-items:center;padding:20px}.sheet{border-radius:20px}}
+.sheet h3{margin:0 0 4px;font-size:1.15rem;word-break:break-word}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sheet .foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:18px}
+.an{margin-top:16px}
+.an h4{margin:12px 0 6px;font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.bars{display:grid;gap:6px}
+.br{display:grid;grid-template-columns:90px 1fr 40px;gap:8px;align-items:center;font-size:.85rem}
+.br i{display:block;height:8px;border-radius:4px;background:var(--grad)}
+.br div{background:var(--card2);border-radius:4px}
+.kv{display:flex;gap:8px;align-items:center;background:var(--card2);border-radius:12px;padding:8px 12px;margin-top:8px}
+.kv code{flex:1;word-break:break-all;background:none}
+.sec{margin:6px 0 22px}
+.sec h3{margin:0 0 4px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#262636;border:1px solid var(--line);padding:10px 18px;border-radius:12px;opacity:0;transition:.2s;z-index:80;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{border-color:rgba(255,90,110,.6)}
+</style></head>
+<body>
+<div class="top"><div class="wrap">
+  <a class="brand" href="/"><i>{{template "logo"}}</i><span>{{.BotName}}</span></a>
+  <div id="topright" class="hide" style="display:flex;gap:8px;align-items:center">
+    <select id="lang" class="langsel" aria-label="Language"></select>
+    <span class="chip"><span id="who"></span></span>
+    <button class="btn sm" id="logout">Sign out</button>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <!-- signed out -->
+  <div id="signin" class="signin card hide">
+    <h1>Sign in</h1>
+    <p class="muted">Use your Telegram account to see and manage your links.</p>
+    {{if .BotUser}}<div id="widget" style="display:flex;justify-content:center;margin:18px 0">
+      <script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="{{.BotUser}}" data-size="large" data-auth-url="/auth/telegram" data-request-access="write"></script>
+    </div>
+    <p class="muted" style="font-size:.85rem">If the button does not appear, use the other method below.</p>{{end}}
+    <ol>
+      <li>Open the bot on Telegram{{if .BotUser}} (<b>@{{.BotUser}}</b>){{end}}</li>
+      <li>Send <code>/login</code></li>
+      <li>Tap the <b>Sign in</b> button it sends you</li>
+    </ol>
+  </div>
+  <div id="loading" class="empty">Loading…</div>
+
+  <!-- signed in -->
+  <div id="main" class="hide">
+    <div class="stats" id="stats"></div>
+    <div class="tabs" id="tabs">
+      <button class="tab on" data-t="files">Files</button>
+      <button class="tab" data-t="cols">Collections</button>
+      <button class="tab" data-t="dev">Developers</button>
+    </div>
+
+    <section id="t-files">
+      <div class="bar">
+        <input type="search" id="q" placeholder="Search by name…" aria-label="Search">
+        <select id="folder" aria-label="Folder"></select>
+        <button class="btn sm" id="selall">Select all</button>
+        <button class="btn pri sm hide" id="addcol">Add to collection</button>
+      </div>
+      <div class="list" id="files"></div>
+    </section>
+
+    <section id="t-cols" class="hide">
+      <div class="bar"><button class="btn pri sm" id="newcol">New collection</button><span class="muted" style="font-size:.85rem">Tip: select files on the Files tab first, then tap “Add to collection”.</span></div>
+      <div class="list" id="cols"></div>
+    </section>
+
+    <section id="t-dev" class="hide">
+      <div class="card sec">
+        <h3>API keys</h3>
+        <div class="muted" style="font-size:.9rem">Use a key to read and manage your links from your own code. <a href="/docs" style="text-decoration:underline">Read the docs</a></div>
+        <div id="keys" style="margin-top:10px"></div>
+        <div style="display:flex;gap:8px;margin-top:10px"><input type="text" id="keyname" placeholder="Key name (e.g. my-site)" maxlength="30"><button class="btn pri" id="newkey">Create key</button></div>
+      </div>
+      <div class="card sec">
+        <h3>Webhook</h3>
+        <div class="muted" style="font-size:.9rem">Get <code>link.created</code> and <code>link.viewed</code> events at your HTTPS URL.</div>
+        <div style="display:flex;gap:8px;margin-top:10px"><input type="url" id="whurl" placeholder="https://example.com/hook"><button class="btn pri" id="whsave">Save</button></div>
+        <div id="whinfo"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="f">{{.BotName}} v{{.Version}} · Remodified by <b>Ahar Developers</b></footer>
+</div>
+
+<!-- edit sheet -->
+<div class="modal" id="edit"><div class="sheet" id="editbody"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+var S={me:null,files:[],folders:[],cols:[],sel:{},tab:'files'};
+function $(i){return document.getElementById(i)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function bytes(b){b=b||0;if(b<1024)return b+' B';var u=['KB','MB','GB','TB'],i=-1;do{b/=1024;i++}while(b>=1024&&i<u.length-1);return b.toFixed(b>=100?0:2)+' '+u[i]}
+function nf(n){return (n||0).toLocaleString()}
+var tt;
+function toast(m,err){var t=$('toast');t.textContent=m;t.className='toast on'+(err?' err':'');clearTimeout(tt);tt=setTimeout(function(){t.className='toast'},2600)}
+
+function api(method,url,body){
+  var o={method:method,headers:{'X-Requested-With':'fetch'},credentials:'same-origin'};
+  if(body!==undefined){o.headers['Content-Type']='application/json';o.body=JSON.stringify(body)}
+  return fetch(url,o).then(function(r){
+    return r.json().catch(function(){return {}}).then(function(j){
+      if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}
+      return j;
+    });
+  });
+}
+function fail(e){if(e.status===401){showSignin();return}toast(e.message,true)}
+
+/* ---------- Telegram Mini App ---------- */
+var inTG=location.hash.indexOf('tgWebAppData')>-1;
+function loadTG(cb){
+  if(!inTG){cb(null);return}
+  var s=document.createElement('script');s.src='https://telegram.org/js/telegram-web-app.js';
+  s.onload=function(){
+    try{var w=window.Telegram.WebApp;w.ready();w.expand();w.setHeaderColor('#0b0b0f');w.setBackgroundColor('#0b0b0f');cb(w)}catch(e){cb(null)}
+  };
+  s.onerror=function(){cb(null)};
+  document.head.appendChild(s);
+}
+
+/* ---------- boot ---------- */
+function showSignin(){$('loading').classList.add('hide');$('main').classList.add('hide');$('topright').classList.add('hide');$('signin').classList.remove('hide')}
+function boot(){
+  api('GET','/api/me').then(function(j){S.me=j;start()}).catch(function(e){
+    if(e.status===401&&window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData){
+      api('POST','/auth/webapp',{initData:Telegram.WebApp.initData}).then(function(){return api('GET','/api/me')}).then(function(j){S.me=j;start()}).catch(function(e2){showSignin();toast(e2.message,true)});
+    }else if(e.status===401){showSignin()}else{$('loading').textContent=e.message}
+  });
+}
+function start(){
+  $('signin').classList.add('hide');$('loading').classList.add('hide');
+  $('main').classList.remove('hide');$('topright').classList.remove('hide');
+  var u=S.me.user;$('who').textContent=u.first_name||u.username||('#'+u.id);
+  var ls=$('lang');ls.innerHTML='';
+  S.me.languages.forEach(function(l){var o=document.createElement('option');o.value=l.code;o.textContent=l.name;if(l.code===u.lang)o.selected=true;ls.appendChild(o)});
+  renderStats();renderDev();loadFiles();loadCols();
+}
+function refreshMe(){return api('GET','/api/me').then(function(j){S.me=j;renderStats();renderDev()})}
+
+function renderStats(){
+  var s=S.me.summary;
+  var items=[['Links',nf(s.files)],['Active',nf(s.active)],['Storage',bytes(s.bytes)],['Downloads',nf(s.downloads)],['Views',nf(s.views)],['Data served',bytes(s.bytes_served)]];
+  $('stats').innerHTML=items.map(function(x){return '<div class="stat"><b>'+esc(x[1])+'</b><span>'+x[0]+'</span></div>'}).join('');
+}
+
+/* ---------- files ---------- */
+function kindIcon(m){m=m||'';if(m.indexOf('video/')===0)return '🎬';if(m.indexOf('audio/')===0)return '🎵';if(m.indexOf('image/')===0)return '🖼';if(m.indexOf('pdf')>-1)return '📕';if(/zip|rar|7z|tar/.test(m))return '🗜';if(m.indexOf('text/')===0)return '📝';return '📦'}
+function left(ts){
+  if(!ts)return 'never expires';
+  var d=ts*1000-Date.now();if(d<=0)return 'expired';
+  var h=Math.floor(d/3600000),m=Math.floor(d/60000)%60;
+  if(h>=48)return Math.floor(h/24)+'d '+(h%24)+'h left';
+  if(h>0)return h+'h '+m+'m left';return m+'m left';
+}
+var qt;
+$('q').addEventListener('input',function(){clearTimeout(qt);qt=setTimeout(loadFiles,250)});
+$('folder').addEventListener('change',loadFiles);
+function loadFiles(){
+  var url='/api/me/files?q='+encodeURIComponent($('q').value.trim());
+  var f=$('folder').value;if(f)url+='&folder='+encodeURIComponent(f);
+  api('GET',url).then(function(j){
+    S.files=j.files;S.folders=j.folders||[];
+    var cur=$('folder').value,h='<option value="">All folders</option><option value="-">No folder</option>';
+    S.folders.forEach(function(x){h+='<option value="'+esc(x)+'">'+esc(x)+'</option>'});
+    $('folder').innerHTML=h;$('folder').value=cur;
+    renderFiles();
+  }).catch(fail);
+}
+function renderFiles(){
+  var box=$('files');
+  if(!S.files.length){box.innerHTML='<div class="empty">No links found. Send a file to the bot to create one.</div>';updateSel();return}
+  box.innerHTML=S.files.map(function(f){
+    var st='<span class="badge b-'+f.status+'">'+f.status+'</span>';
+    var meta=[bytes(f.size),left(f.expires_at),'👁 '+nf(f.views)+(f.max_views?' / '+f.max_views:''),'⬇ '+nf(f.downloads)];
+    var tags='';if(f.protected)tags+='<span class="badge b-tag">🔒 password</span>';if(f.folder)tags+='<span class="badge b-tag">📁 '+esc(f.folder)+'</span>';
+    var acts='';
+    if(f.watch_url)acts+='<a class="btn sm" href="'+esc(f.watch_url)+'" target="_blank" rel="noopener">Open</a>';
+    else if(f.stream_url)acts+='<a class="btn sm" href="'+esc(f.stream_url)+'" target="_blank" rel="noopener">Open</a>';
+    acts+='<button class="btn sm" data-copy="'+f.id+'">Copy link</button><button class="btn sm" data-edit="'+f.id+'">Edit</button>';
+    return '<div class="row'+(S.sel[f.id]?' sel':'')+'" data-id="'+f.id+'"><input class="cb" type="checkbox" data-pick="'+f.id+'"'+(S.sel[f.id]?' checked':'')+' aria-label="Select"><div class="k">'+kindIcon(f.mime)+'</div><div class="info"><span class="nm" title="'+esc(f.name)+'">'+esc(f.name)+'</span><div class="meta"><span>'+st+'</span>'+meta.map(function(m){return '<span>'+esc(m)+'</span>'}).join('')+tags+'</div></div><div class="acts">'+acts+'</div></div>';
+  }).join('');
+  updateSel();
+}
+function findFile(id){for(var i=0;i<S.files.length;i++)if(S.files[i].id===id)return S.files[i];return null}
+$('files').addEventListener('click',function(e){
+  var t=e.target;
+  if(t.dataset.pick){var id=+t.dataset.pick;if(t.checked)S.sel[id]=true;else delete S.sel[id];t.closest('.row').classList.toggle('sel',t.checked);updateSel();return}
+  if(t.dataset.copy){var f=findFile(+t.dataset.copy);copy(f.watch_url||f.stream_url||'');return}
+  if(t.dataset.edit){openEdit(+t.dataset.edit)}
+});
+function selIds(){return Object.keys(S.sel).map(Number)}
+function updateSel(){
+  var n=selIds().length;$('addcol').classList.toggle('hide',n===0);$('addcol').textContent='Add '+n+' to collection';
+  $('selall').textContent=(S.files.length&&n>=S.files.length)?'Clear':'Select all';
+}
+$('selall').addEventListener('click',function(){
+  var all=S.files.length&&selIds().length>=S.files.length;S.sel={};
+  if(!all)S.files.forEach(function(f){S.sel[f.id]=true});renderFiles();
+});
+function copy(text){
+  if(!text){toast('Nothing to copy',true);return}
+  function ok(){toast('Link copied')}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,function(){fallback()})}else fallback();
+  function fallback(){var a=document.createElement('textarea');a.value=text;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){prompt('Copy this link',text)}a.remove()}
+}
+
+/* ---------- edit sheet ---------- */
+function bars(obj,total){
+  var keys=Object.keys(obj||{}).sort(function(a,b){return obj[b]-obj[a]}).slice(0,6);
+  if(!keys.length)return '<div class="muted" style="font-size:.85rem">No data yet</div>';
+  var max=obj[keys[0]]||1;
+  return '<div class="bars">'+keys.map(function(k){var n=obj[k];return '<div class="br"><span>'+esc(k==='??'?'Unknown':k)+'</span><div><i style="width:'+Math.max(4,Math.round(n/max*100))+'%"></i></div><span>'+nf(n)+'</span></div>'}).join('')+'</div>';
+}
+function openEdit(id){
+  var f=findFile(id);if(!f)return;
+  var h='<h3>Edit link</h3><div class="muted" style="font-size:.85rem">ID '+f.id+' · '+bytes(f.size)+'</div>';
+  h+='<label>Name</label><input type="text" id="e-name" maxlength="200" value="'+esc(f.name)+'">';
+  h+='<label>Folder</label><input type="text" id="e-folder" maxlength="40" list="folders" placeholder="No folder" value="'+esc(f.folder)+'"><datalist id="folders">'+S.folders.map(function(x){return '<option value="'+esc(x)+'">'}).join('')+'</datalist>';
+  h+='<div class="two"><div><label>Expiry</label><select id="e-exp"><option value="">Keep current ('+esc(left(f.expires_at))+')</option><option value="1">1 hour</option><option value="24">1 day</option><option value="168">7 days</option><option value="720">30 days</option><option value="-1">Never</option></select></div>';
+  h+='<div><label>View limit (0 = none)</label><input type="number" id="e-views" min="0" max="1000000" value="'+f.max_views+'"></div></div>';
+  h+='<label>Password '+(f.protected?'(currently set)':'(none)')+'</label><input type="password" id="e-pw" maxlength="100" placeholder="'+(f.protected?'Type a new password to change it':'Leave empty for a public link')+'" autocomplete="new-password">';
+  if(f.protected)h+='<label style="text-transform:none;display:flex;gap:8px;align-items:center;letter-spacing:0"><input type="checkbox" id="e-clr" style="width:auto;height:auto"> Remove the password</label>';
+  if(!S.me.player)h+='<div class="muted" style="font-size:.8rem;margin-top:6px">Passwords need the web player, which is off on this server.</div>';
+  h+='<div class="an"><h4>Visitors ('+nf(f.views)+')</h4><div class="two"><div><h4>Countries</h4>'+bars(f.countries)+'</div><div><h4>Devices</h4>'+bars(f.devices)+'</div></div>'+(f.last_viewed?'<div class="muted" style="font-size:.8rem;margin-top:8px">Last opened '+new Date(f.last_viewed*1000).toLocaleString()+'</div>':'')+'</div>';
+  h+='<div class="foot"><div style="display:flex;gap:8px"><button class="btn sm danger" id="e-del">Delete</button><button class="btn sm" id="e-rev">'+(f.status==='revoked'?'Restore':'Revoke')+'</button></div><div style="display:flex;gap:8px"><button class="btn sm" id="e-x">Cancel</button><button class="btn pri sm" id="e-save">Save</button></div></div>';
+  $('editbody').innerHTML=h;$('edit').classList.add('on');
+  $('e-x').onclick=closeEdit;
+  $('e-save').onclick=function(){
+    var b={name:$('e-name').value,folder:$('e-folder').value,max_views:parseInt($('e-views').value||'0',10)};
+    var ex=$('e-exp').value;if(ex!=='')b.expiry_hours=parseInt(ex,10);
+    var pw=$('e-pw').value;if(pw)b.password=pw;
+    if($('e-clr')&&$('e-clr').checked&&!pw)b.clear_password=true;
+    api('PATCH','/api/me/files/'+id,b).then(function(){closeEdit();toast('Saved');loadFiles();refreshMe()}).catch(fail);
+  };
+  $('e-rev').onclick=function(){
+    api('PATCH','/api/me/files/'+id,{revoked:f.status!=='revoked'}).then(function(){closeEdit();toast(f.status==='revoked'?'Link restored':'Link revoked');loadFiles();refreshMe()}).catch(fail);
+  };
+  $('e-del').onclick=function(){
+    if(!confirm('Delete this link permanently? Its statistics are lost.'))return;
+    api('DELETE','/api/me/files/'+id).then(function(){closeEdit();delete S.sel[id];toast('Deleted');loadFiles();loadCols();refreshMe()}).catch(fail);
+  };
+}
+function closeEdit(){$('edit').classList.remove('on')}
+$('edit').addEventListener('click',function(e){if(e.target===$('edit'))closeEdit()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeEdit()});
+
+/* ---------- collections ---------- */
+function loadCols(){
+  api('GET','/api/me/collections').then(function(j){S.cols=j.collections;renderCols()}).catch(fail);
+}
+function renderCols(){
+  var box=$('cols');
+  if(!S.cols.length){box.innerHTML='<div class="empty">No collections yet.</div>';return}
+  box.innerHTML=S.cols.map(function(c){
+    return '<div class="row"><div class="k">🗂</div><div class="info"><span class="nm">'+esc(c.title)+(c.revoked?' <span class="badge b-revoked">not shared</span>':'')+'</span><div class="meta"><span>'+c.files.length+' file'+(c.files.length===1?'':'s')+'</span></div></div><div class="acts"><a class="btn sm" href="'+esc(c.url)+'" target="_blank" rel="noopener">Open</a><button class="btn sm" data-ccopy="'+c.id+'">Copy link</button><button class="btn sm" data-cren="'+c.id+'">Rename</button><button class="btn sm" data-cset="'+c.id+'">Set files</button><button class="btn sm" data-ctog="'+c.id+'">'+(c.revoked?'Share again':'Stop sharing')+'</button><button class="btn sm danger" data-cdel="'+c.id+'">Delete</button></div></div>';
+  }).join('');
+}
+function findCol(id){for(var i=0;i<S.cols.length;i++)if(S.cols[i].id===id)return S.cols[i];return null}
+$('cols').addEventListener('click',function(e){
+  var t=e.target,id;
+  if(t.dataset.ccopy){copy(findCol(t.dataset.ccopy).url)}
+  else if(t.dataset.cren){id=t.dataset.cren;var n=prompt('New title',findCol(id).title);if(n)api('PATCH','/api/me/collections/'+id,{title:n}).then(loadCols).catch(fail)}
+  else if(t.dataset.cset){
+    id=t.dataset.cset;var ids=selIds();
+    if(!ids.length){toast('Select files on the Files tab first',true);return}
+    if(confirm('Replace this collection\'s files with the '+ids.length+' selected file(s)?'))api('PATCH','/api/me/collections/'+id,{files:ids}).then(function(){toast('Updated');loadCols()}).catch(fail);
+  }
+  else if(t.dataset.ctog){id=t.dataset.ctog;api('PATCH','/api/me/collections/'+id,{revoked:!findCol(id).revoked}).then(loadCols).catch(fail)}
+  else if(t.dataset.cdel){id=t.dataset.cdel;if(confirm('Delete this collection? The files themselves are not deleted.'))api('DELETE','/api/me/collections/'+id).then(loadCols).catch(fail)}
+});
+function createCol(){
+  var ids=selIds();
+  var title=prompt('Collection title',ids.length?'My collection':'');
+  if(!title)return;
+  api('POST','/api/me/collections',{title:title,files:ids}).then(function(c){
+    S.sel={};renderFiles();loadCols();setTab('cols');toast('Collection created');copy(c.url);
+  }).catch(fail);
+}
+$('newcol').addEventListener('click',createCol);
+$('addcol').addEventListener('click',createCol);
+
+/* ---------- developers ---------- */
+function renderDev(){
+  var k=S.me.keys;
+  $('keys').innerHTML=k.length?k.map(function(x){return '<div class="kv"><code>'+esc(x.name)+' · '+esc(x.prefix)+'…</code><span class="muted" style="font-size:.8rem">'+(x.last_used?'used '+new Date(x.last_used*1000).toLocaleDateString():'never used')+'</span><button class="btn sm danger" data-kdel="'+esc(x.id)+'">Revoke</button></div>'}).join(''):'<div class="muted" style="font-size:.9rem">No keys yet.</div>';
+  var w=S.me.webhook;$('whurl').value=w.url||'';
+  $('whinfo').innerHTML=w.url?'<div class="kv"><code>'+esc(w.secret)+'</code><button class="btn sm" data-wcopy="1">Copy secret</button><button class="btn sm" data-wtest="1">Send test</button><button class="btn sm danger" data-wdel="1">Remove</button></div><div class="muted" style="font-size:.8rem;margin-top:6px">Requests are signed in the X-Fsb-Signature header with this secret.</div>':'';
+}
+$('t-dev').addEventListener('click',function(e){
+  var t=e.target;
+  if(t.dataset.kdel){if(confirm('Revoke this key? Apps using it stop working.'))api('DELETE','/api/me/keys/'+t.dataset.kdel).then(refreshMe).catch(fail)}
+  else if(t.dataset.wcopy){copy(S.me.webhook.secret)}
+  else if(t.dataset.wtest){api('POST','/api/me/webhook/test',{}).then(function(){toast('Test event delivered')}).catch(fail)}
+  else if(t.dataset.wdel){api('PUT','/api/me/webhook',{url:''}).then(function(){toast('Webhook removed');return refreshMe()}).catch(fail)}
+});
+$('newkey').addEventListener('click',function(){
+  api('POST','/api/me/keys',{name:$('keyname').value}).then(function(j){
+    $('keyname').value='';
+    $('keys').innerHTML='<div class="kv"><code>'+esc(j.key)+'</code><button class="btn sm" id="ckey">Copy</button></div><div class="muted" style="font-size:.8rem;margin:6px 0">Copy it now - it is shown only once.</div>';
+    $('ckey').onclick=function(){copy(j.key)};
+    return api('GET','/api/me').then(function(m){S.me.keys=m.keys});
+  }).catch(fail);
+});
+$('whsave').addEventListener('click',function(){
+  api('PUT','/api/me/webhook',{url:$('whurl').value}).then(function(){toast('Webhook saved');return refreshMe()}).catch(fail);
+});
+
+/* ---------- chrome ---------- */
+function setTab(t){
+  S.tab=t;
+  ['files','cols','dev'].forEach(function(x){$('t-'+x).classList.toggle('hide',x!==t)});
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.classList.toggle('on',b.dataset.t===t)});
+}
+$('tabs').addEventListener('click',function(e){if(e.target.dataset.t)setTab(e.target.dataset.t)});
+$('lang').addEventListener('change',function(){api('PUT','/api/me/lang',{lang:$('lang').value}).then(function(){toast('Bot language updated')}).catch(fail)});
+$('logout').addEventListener('click',function(){api('POST','/auth/logout',{}).then(function(){location.hash='';location.reload()})});
+
+loadTG(function(){boot()});
+})();
+</script>
+</body></html>

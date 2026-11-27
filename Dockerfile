@@ -6,6 +6,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /app/fsb -ldflags="-w -s" ./cmd/fsb
 
 FROM scratch
+WORKDIR /app
 COPY --from=builder /app/fsb /app/fsb
 EXPOSE ${PORT}
 ENTRYPOINT ["/app/fsb", "run"]

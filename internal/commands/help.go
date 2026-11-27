@@ -37,6 +37,17 @@ func helpText(admin, owner bool) []part {
 		c("/revoke"), p(" <id> – disable a link"), nl(),
 		c("/ping"), p(" – latency & uptime"), nl(),
 		c("/about"), p(" – about this bot"), nl(),
+		nl(), b("✨ Links & app"), nl(),
+		c("/app"), p(" – open My Files (Mini App) · "), c("/login"), p(" – sign in from a browser"), nl(),
+		c("/password"), p(" <id> <pass|off> – protect a link"), nl(),
+		c("/views"), p(" <id> <n|off> – limit opens (1 = one-time link)"), nl(),
+		c("/linkexpiry"), p(" <id> <24h|7d|off> – expiry of one link"), nl(),
+		c("/storage"), p(" – your storage summary · "), c("/collections"), p(" – shareable collections"), nl(),
+		c("/language"), p(" – change the bot language"), nl(),
+		nl(), b("🧩 Developers"), nl(),
+		c("/apikey"), p(" [new <name> | revoke <id>] – API keys"), nl(),
+		c("/webhook"), p(" <https url|off|test> – event webhook"), nl(),
+		i("Inline mode: type @"+"yourbot in any chat. Channels: post /watchbuttons in your channel."), nl(),
 	)
 	if admin {
 		ps = append(ps, nl(),
@@ -69,7 +80,7 @@ func aboutText() []part {
 		b("Version: "), c(utils.Version), nl(),
 		b("Runtime: "), c(runtime.Version()), nl(),
 		b("Uptime: "), c(utils.TimeFormat(uint64(time.Since(StartTime).Seconds()))), nl(), nl(),
-		i("Built on TG-FileStreamBot by EverythingSuckz (AGPL-3.0)."),
+		i("Remodified by Ahar Developers. Built on TG-FileStreamBot by EverythingSuckz (AGPL-3.0)."),
 	)
 }
 

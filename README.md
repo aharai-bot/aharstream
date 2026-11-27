@@ -17,6 +17,28 @@ Built on [TG-FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot)
 - Inline-button navigation (Home / Help / My Files / About)
 - Slash-command menu is registered automatically
 
+**Inside Telegram**
+- **Mini App** – the bot's *Open App* button and menu button open the My Files page and the web player right inside Telegram (needs an `https` `HOST`)
+- **Inline mode** – type `@yourbot` in any chat to share one of your links (enable once with @BotFather → `/setinline`)
+- **Channel mode** – add the bot to your channel as admin, post `/watchbuttons`, the owner approves, and new media posts get Watch / Download buttons
+- **6 languages** for bot replies: English, हिन्दी, தமிழ், తెలుగు, മലയാളം, ಕನ್ನಡ (`/language`)
+
+**Smarter links**
+- **Passwords** – `/password <id> <pass>` or the 🔒 button; visitors see an unlock page
+- **One-time / limited-view links** – `/views <id> 1`, or the 👁 buttons under a new link
+- **Expiry per link** – ⏳ 1h / 1d / 7d / ♾ buttons, or `/linkexpiry <id> 12h`
+- **Analytics** – unique views, devices and (when your host/CDN sends a country header) countries per link
+
+**Personal cloud**
+- **My Files app** (`/app`) – search, rename, folders, edit, revoke, delete; sign in with the Mini App, `/login`, or the Telegram login button
+- **Collections** – group links into one shareable page (`/c/<id>?k=<token>`)
+- **Storage summary** – `/storage` and the stats cards in the app
+
+**For developers**
+- **Public API with keys** – `/apikey new <name>`, docs at `/docs`
+- **Signed webhooks** – `link.created` and `link.viewed` events (`/webhook <https-url>`)
+- **One-click deploy** and a **first-run setup wizard** (see below)
+
 **For admins**
 - Admin panel with live status, users and top-files views
 - Ban / unban users (with reason, user is notified), maintenance mode
@@ -41,6 +63,15 @@ Built on [TG-FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot)
 | `/info` | everyone | Reply to a file to see name, type, size, MIME, ID |
 | `/expiry <24h\|7d\|off\|default>` | everyone | Default lifetime of your new links |
 | `/revoke <id>` | owner of link / admin | Disable a link |
+| `/app` · `/login` | everyone | Open My Files (Mini App) · sign in from a browser |
+| `/language` | everyone | Choose the bot language |
+| `/password <id> <pass\|off>` | link owner | Protect a link with a password (your message is deleted) |
+| `/views <id> <n\|off>` | link owner | Limit how many visitors can open a link (1 = one-time) |
+| `/linkexpiry <id> <24h\|7d\|off>` | link owner | Expiry of one link |
+| `/storage` · `/collections` | everyone | Storage summary · your collections |
+| `/apikey [new <name>\|revoke <id>]` | everyone | Manage API keys (max 5) |
+| `/webhook <https-url\|off\|test>` | everyone | Event webhook |
+| `/cancel` | everyone | Cancel a pending password prompt |
 | `/admin` | admin | Admin panel |
 | `/status` | admin | Uptime, memory, workers, users, links, downloads, bandwidth |
 | `/users` · `/user <id>` | admin | User statistics / details |
@@ -53,6 +84,31 @@ Built on [TG-FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot)
 | `/purge` | admin | Remove expired link records |
 | `/admins` | admin | List owners and admins |
 | `/addadmin <id>` · `/rmadmin <id>` | owner | Manage admins |
+
+## 🚀 Deploy
+
+> The buttons need the URL of **your** GitHub repository: replace `YOUR_USER/YOUR_REPO` (they have not been tested from here).
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/YOUR_USER/YOUR_REPO)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/YOUR_USER/YOUR_REPO)
+
+- **Render** reads `render.yaml` (Blueprint) – fill in the secrets it asks for.
+- **Railway** – *New Project → Deploy from GitHub repo*; it builds the `Dockerfile` (`railway.json`). Add the variables below.
+- **Koyeb** – *Create service → GitHub → builder: Dockerfile*, port `8080`.
+- **Docker** – `touch fsb.env && docker compose up -d`, then open `http://<server>:8038/?token=<token from the logs>`.
+- **Heroku** – uses `app.json` and the `Procfile`.
+
+Free hosts usually have a disk that is wiped on restart: use a persistent volume for `data/` (the database) or your links, users and stats are lost.
+
+### First-run setup wizard
+
+If `API_ID`, `API_HASH`, `BOT_TOKEN` or `LOG_CHANNEL` are missing, the server does not exit. It starts a setup page on `PORT` and prints a line like
+
+```
+Setup wizard: open http://<your-server>:8080/?token=3fa91c7e04b2 in a browser.
+```
+
+Open that address, fill in the form, and the bot starts right away. The values are saved to `fsb.env` (mode 0600). The token only appears in the server logs, so only someone with log access can use the wizard. On hosts with an ephemeral disk, set the variables in the host's dashboard instead.
 
 ## ⚙️ Setup
 
@@ -78,7 +134,8 @@ docker compose up -d
 | `DEFAULT_EXPIRY_HOURS` | `0` | Default link lifetime (0 = never) |
 | `MAX_LINKS_PER_HOUR` | `60` | Per-user rate limit (admins exempt, 0 = off) |
 | `MAX_FILE_SIZE_MB` | `0` | Max size for non-admins (0 = unlimited) |
-| `ENABLE_PLAYER` | `true` | Enable the `/watch` web player |
+| `ENABLE_PLAYER` | `true` | Enable the `/watch` web player (needed for passwords) |
+| `SESSION_SECRET` | derived from `BOT_TOKEN` | Optional secret that signs web sign-in cookies and link tokens |
 
 All original variables (`MULTI_TOKEN*`, `ALLOWED_USERS`, `STREAM_*`, …) keep working.
 
@@ -86,7 +143,16 @@ All original variables (`MULTI_TOKEN*`, `ALLOWED_USERS`, `STREAM_*`, …) keep w
 
 - `GET /` – status JSON · `GET /health` – liveness · `GET /api/stats` – public totals
 - `GET /stream/<id>?hash=<hash>[&d=true]` – file stream (Range supported)
-- `GET /watch/<id>?hash=<hash>` – web player
+- `GET /watch/<id>?hash=<hash>` – web player (shows an unlock page for password-protected links)
+- `GET /app` – My Files app · `GET /docs` – API documentation · `GET /c/<id>?k=<token>` – shared collection
+- `GET /auth/login?t=…` (from `/login`) · `GET /auth/telegram` (login widget) · `POST /auth/webapp` (Mini App)
+- `GET|PATCH|DELETE /api/v1/…` – public API (Bearer key) · `/api/me/…` – the app's own API (session cookie)
+
+### Good to know
+- A *view* is one unique visitor per link per 10 minutes. Link previews (Telegram, WhatsApp…) and `HEAD` requests never use up views.
+- Countries are only recorded when your host or CDN sends a country header (e.g. Cloudflare `CF-IPCountry`); there is no GeoIP database.
+- The in-Telegram Mini App and menu button need `HOST` to be an `https://` URL. The Telegram login button on `/app` also needs `/setdomain` in @BotFather.
+- Webhook URLs must be `https` and cannot point to private or local addresses.
 
 ## Notes
 - Links created before upgrading keep working (they simply have no stats/expiry record).

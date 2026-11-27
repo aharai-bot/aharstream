@@ -21,6 +21,17 @@ func RegisterMenu(log *zap.Logger) {
 		{Command: "revoke", Description: "Disable a link by its ID"},
 		{Command: "ping", Description: "Check the bot is alive"},
 		{Command: "about", Description: "About this bot"},
+		{Command: "app", Description: "Open the My Files app"},
+		{Command: "login", Description: "Sign in to the web app"},
+		{Command: "storage", Description: "Your storage summary"},
+		{Command: "language", Description: "Change the bot language"},
+		{Command: "password", Description: "Protect a link with a password"},
+		{Command: "views", Description: "Limit how often a link can be opened"},
+		{Command: "linkexpiry", Description: "Change one link's expiry"},
+		{Command: "collections", Description: "Your shareable collections"},
+		{Command: "apikey", Description: "Manage API keys"},
+		{Command: "webhook", Description: "Set a webhook URL"},
+		{Command: "cancel", Description: "Cancel the current action"},
 	}
 	ctx := Client.CreateContext()
 	_, err := Client.API().BotsSetBotCommands(ctx, &tg.BotsSetBotCommandsRequest{
@@ -33,4 +44,15 @@ func RegisterMenu(log *zap.Logger) {
 		return
 	}
 	log.Info("Bot command menu registered")
+
+	// The blue "Open" button next to the message box launches the Mini App.
+	if isHTTPS() {
+		_, err := Client.API().BotsSetBotMenuButton(ctx, &tg.BotsSetBotMenuButtonRequest{
+			UserID: &tg.InputUserEmpty{},
+			Button: &tg.BotMenuButton{Text: "My Files", URL: baseURL() + "/app"},
+		})
+		if err != nil {
+			log.Warn("Failed to set the Mini App menu button", zap.Error(err))
+		}
+	}
 }

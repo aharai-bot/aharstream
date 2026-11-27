@@ -22,6 +22,11 @@ type User struct {
 	BanReason string `json:"ban_reason,omitempty"`
 	// ExpiryHours is the user's default link lifetime (0 = never expires).
 	ExpiryHours int `json:"expiry_hours"`
+	// Lang is the bot language code (en, hi, ta, te, ml, kn). Empty = English.
+	Lang string `json:"lang,omitempty"`
+	// Webhook delivery settings (see /webhook).
+	WebhookURL    string `json:"webhook_url,omitempty"`
+	WebhookSecret string `json:"webhook_secret,omitempty"`
 }
 
 // FileRecord is one generated link.
@@ -37,6 +42,36 @@ type FileRecord struct {
 	Revoked   bool   `json:"revoked"`
 	Downloads int64  `json:"downloads"`
 	Bytes     int64  `json:"bytes"`
+
+	// PassHash is "salt$hash" of the optional link password ("" = public).
+	PassHash string `json:"pass_hash,omitempty"`
+	// MaxViews limits unique visits (0 = unlimited, 1 = one-time link).
+	MaxViews int `json:"max_views,omitempty"`
+	// Views counts unique visits (a visitor is counted once per 10 minutes).
+	Views int `json:"views,omitempty"`
+	// Folder is a free-form label used by the My Files page.
+	Folder     string           `json:"folder,omitempty"`
+	LastViewed int64            `json:"last_viewed,omitempty"`
+	Countries  map[string]int64 `json:"countries,omitempty"`
+	Devices    map[string]int64 `json:"devices,omitempty"`
+}
+
+// clone returns a deep copy that is safe to use outside the store lock.
+func (f *FileRecord) clone() FileRecord {
+	c := *f
+	if f.Countries != nil {
+		c.Countries = make(map[string]int64, len(f.Countries))
+		for k, v := range f.Countries {
+			c.Countries[k] = v
+		}
+	}
+	if f.Devices != nil {
+		c.Devices = make(map[string]int64, len(f.Devices))
+		for k, v := range f.Devices {
+			c.Devices[k] = v
+		}
+	}
+	return c
 }
 
 type Stats struct {
@@ -46,12 +81,15 @@ type Stats struct {
 }
 
 type data struct {
-	Users       map[int64]*User     `json:"users"`
-	Files       map[int]*FileRecord `json:"files"`
-	Admins      []int64             `json:"admins"`
-	Stats       Stats               `json:"stats"`
-	Maintenance bool                `json:"maintenance"`
-	Settings    map[string]string   `json:"settings"`
+	Users       map[int64]*User        `json:"users"`
+	Files       map[int]*FileRecord    `json:"files"`
+	Admins      []int64                `json:"admins"`
+	Stats       Stats                  `json:"stats"`
+	Maintenance bool                   `json:"maintenance"`
+	Settings    map[string]string      `json:"settings"`
+	Collections map[string]*Collection `json:"collections,omitempty"`
+	APIKeys     map[string]*APIKey     `json:"api_keys,omitempty"`
+	Channels    map[int64]*Channel     `json:"channels,omitempty"`
 }
 
 type Store struct {
@@ -72,6 +110,7 @@ func Init(path string) error {
 		Files:    map[int]*FileRecord{},
 		Settings: map[string]string{},
 	}
+	s.d.initMaps()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
@@ -88,6 +127,7 @@ func Init(path string) error {
 		if s.d.Settings == nil {
 			s.d.Settings = map[string]string{}
 		}
+		s.d.initMaps()
 	}
 	Default = s
 	go s.flusher()
@@ -330,7 +370,7 @@ func (s *Store) GetFile(messageID int) (FileRecord, bool) {
 	if !ok {
 		return FileRecord{}, false
 	}
-	return *f, true
+	return f.clone(), true
 }
 
 func (s *Store) RevokeFile(messageID int, restore bool) bool {
@@ -350,7 +390,7 @@ func (s *Store) FilesOf(owner int64, n int) []FileRecord {
 	var out []FileRecord
 	for _, f := range s.d.Files {
 		if f.OwnerID == owner {
-			out = append(out, *f)
+			out = append(out, f.clone())
 		}
 	}
 	s.mu.RUnlock()
@@ -366,7 +406,7 @@ func (s *Store) TopFiles(n int) []FileRecord {
 	s.mu.RLock()
 	out := make([]FileRecord, 0, len(s.d.Files))
 	for _, f := range s.d.Files {
-		out = append(out, *f)
+		out = append(out, f.clone())
 	}
 	s.mu.RUnlock()
 	sort.Slice(out, func(i, j int) bool { return out[i].Downloads > out[j].Downloads })

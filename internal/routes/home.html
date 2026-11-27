@@ -121,7 +121,7 @@ footer .by b{background:var(--grad);-webkit-background-clip:text;background-clip
 <nav><div class="wrap">
   <a class="brand" href="/"><i><svg><use href="#i-logo"/></svg></i>{{.BotName}}</a>
   <div class="links">
-    <a href="#stats">Live stats</a><a href="#features" class="hide">Features</a><a href="#about" class="hide">About</a>
+    <a href="/app">My Files</a><a href="/docs">API</a><a href="#stats">Live stats</a><a href="#features" class="hide">Features</a><a href="#about" class="hide">About</a>
     {{if .BotUser}}<a href="https://t.me/{{.BotUser}}" target="_blank" rel="noopener">Open bot</a>{{end}}
   </div>
 </div></nav>
@@ -133,6 +133,7 @@ footer .by b{background:var(--grad);-webkit-background-clip:text;background-clip
   <p class="sub">{{.BotName}} turns any file you send to the bot into a fast streaming and download link, with a YouTube-style player right in your browser.</p>
   <div class="cta">
     {{if .BotUser}}<a class="btn pri" href="https://t.me/{{.BotUser}}" target="_blank" rel="noopener"><svg><use href="#i-tg"/></svg>Open in Telegram</a>{{end}}
+    <a class="btn sec" href="/app"><svg><use href="#i-link"/></svg>My Files</a>
     <a class="btn sec" href="#how"><svg><use href="#i-play"/></svg>How it works</a>
   </div>
   <div class="up">
@@ -182,6 +183,10 @@ footer .by b{background:var(--grad);-webkit-background-clip:text;background-clip
     <div class="card"><div class="ic"><svg><use href="#i-clock"/></svg></div><h3>Expiring links</h3><p>Links can expire after a set time, and download counts are tracked for each one.</p></div>
     <div class="card"><div class="ic"><svg><use href="#i-shield"/></svg></div><h3>Secure links</h3><p>Every link carries its own hash, so only people with the link can open the file.</p></div>
     <div class="card"><div class="ic"><svg><use href="#i-data"/></svg></div><h3>Low resource use</h3><p>Written in Go and made to run on low-power servers. Files are streamed through, not converted.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-shield"/></svg></div><h3>Passwords &amp; one-time links</h3><p>Protect a link with a password, limit how often it can be opened, or choose its expiry per link.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-tg"/></svg></div><h3>Inside Telegram</h3><p>Open your files as a Mini App, share links with inline mode, and add Watch buttons to your channel posts.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-users"/></svg></div><h3>My Files &amp; collections</h3><p>Search, rename, organise in folders, and share whole collections on one page. Available in 6 languages.</p></div>
+    <div class="card"><div class="ic"><svg><use href="#i-code"/></svg></div><h3>API &amp; webhooks</h3><p>Manage links with API keys and get signed webhook events. <a href="/docs" style="text-decoration:underline">Read the docs</a>.</p></div>
   </div>
 </div></section>
 

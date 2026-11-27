@@ -1,6 +1,6 @@
 {
     "name": "Ahar File Streamer",
-    "description": "Ahar File Streamer - stream Telegram files to the web with admin tools, expiring links and a web player",
+    "description": "Ahar File Streamer - Telegram file streaming with web player, Mini App, passwords, collections, API and webhooks",
     "keywords": [
         "telegram",
         "web",
@@ -59,6 +59,15 @@
         "MAX_LINKS_PER_HOUR": {
             "description": "Per-user link creation limit per hour (0 = unlimited)",
             "value": "60",
+            "required": false
+        },
+        "SESSION_SECRET": {
+            "description": "Optional secret for web sign-in cookies. Leave empty to derive one from BOT_TOKEN",
+            "required": false
+        },
+        "ENABLE_PLAYER": {
+            "description": "Web player (needed for password-protected links)",
+            "value": "true",
             "required": false
         }
     },

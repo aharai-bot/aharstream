@@ -65,6 +65,9 @@ func resolveFile(ctx *gin.Context) (file *types.File, rec *store.FileRecord, wor
 		if store.Default.IsBanned(r.OwnerID) {
 			return nil, nil, nil, messageID, http.StatusForbidden, "this link is unavailable"
 		}
+		if st, m := gateLink(ctx, &r); st != 0 {
+			return nil, nil, nil, messageID, st, m
+		}
 		rec = &r
 	}
 	return file, rec, worker, messageID, 0, ""

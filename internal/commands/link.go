@@ -7,8 +7,11 @@ import (
 	"time"
 
 	"EverythingSuckz/fsb/config"
+	"EverythingSuckz/fsb/internal/auth"
+	"EverythingSuckz/fsb/internal/i18n"
 	"EverythingSuckz/fsb/internal/store"
 	"EverythingSuckz/fsb/internal/utils"
+	"EverythingSuckz/fsb/internal/webhook"
 
 	"github.com/celestix/gotgproto/ext"
 	"github.com/gotd/td/tg"
@@ -36,12 +39,60 @@ func watchURL(rec *store.FileRecord) string {
 	return fmt.Sprintf("%s/watch/%d?hash=%s", config.ValueOf.Host, rec.MessageID, rec.Hash)
 }
 
+// StreamURL / WatchURL build public links for a record (used by the web API too).
+func StreamURL(rec *store.FileRecord) string { return streamURL(rec) }
+func WatchURL(rec *store.FileRecord) string  { return watchURL(rec) }
+
+// LinkOptions are the per-link settings a user can choose.
+type LinkOptions struct {
+	ExpiryHours *int   // nil = user / server default, 0 = never expires
+	Password    string // "" = public
+	MaxViews    int    // 0 = unlimited
+	Folder      string
+}
+
+// LinkPayload is the JSON shape used by webhooks and the public API.
+func LinkPayload(rec *store.FileRecord) map[string]any {
+	m := map[string]any{
+		"id":         rec.MessageID,
+		"name":       rec.Name,
+		"size":       rec.Size,
+		"mime":       rec.Mime,
+		"created_at": rec.CreatedAt,
+		"expires_at": rec.ExpiresAt,
+		"protected":  rec.PassHash != "",
+		"max_views":  rec.MaxViews,
+		"views":      rec.Views,
+		"stream_url": streamURL(rec),
+	}
+	if config.ValueOf.EnablePlayer {
+		m["watch_url"] = watchURL(rec)
+	}
+	return m
+}
+
+// userLang returns the user's bot language code.
+func userLang(id int64) string {
+	if u, ok := store.Default.GetUser(id); ok && i18n.Valid(u.Lang) {
+		return u.Lang
+	}
+	return "en"
+}
+
 // createLink forwards the user's message into the log channel and stores a link record.
 func createLink(ctx *ext.Context, userID int64, srcMsgID int, media tg.MessageMediaClass) (*store.FileRecord, error) {
+	return createLinkFrom(ctx, userID, userID, srcMsgID, media, LinkOptions{})
+}
+
+// createLinkFrom is createLink for any source chat (private chat or channel).
+func createLinkFrom(ctx *ext.Context, fromChatID, userID int64, srcMsgID int, media tg.MessageMediaClass, opts LinkOptions) (*store.FileRecord, error) {
 	admin := IsAdmin(userID)
 
 	if media == nil || !isSupportedMedia(media) {
 		return nil, &linkError{"Sorry, this message type is unsupported. Send a file, video, audio, photo or document."}
+	}
+	if opts.Password != "" && !config.ValueOf.EnablePlayer {
+		return nil, &linkError{i18n.T(userLang(userID), "pw_need_web")}
 	}
 	pre, err := utils.FileFromMedia(media)
 	if err != nil {
@@ -57,7 +108,7 @@ func createLink(ctx *ext.Context, userID int64, srcMsgID int, media tg.MessageMe
 		}
 	}
 
-	update, err := utils.ForwardMessages(ctx, userID, config.ValueOf.LogChannelID, srcMsgID)
+	update, err := utils.ForwardMessages(ctx, fromChatID, config.ValueOf.LogChannelID, srcMsgID)
 	if err != nil {
 		utils.Logger.Sugar().Error(err)
 		return nil, err
@@ -90,6 +141,9 @@ func createLink(ctx *ext.Context, userID int64, srcMsgID int, media tg.MessageMe
 			hours = 0
 		}
 	}
+	if opts.ExpiryHours != nil {
+		hours = *opts.ExpiryHours
+	}
 	var expires int64
 	if hours > 0 {
 		expires = time.Now().Add(time.Duration(hours) * time.Hour).Unix()
@@ -104,41 +158,86 @@ func createLink(ctx *ext.Context, userID int64, srcMsgID int, media tg.MessageMe
 		Hash:      hash,
 		CreatedAt: time.Now().Unix(),
 		ExpiresAt: expires,
+		MaxViews:  opts.MaxViews,
+		Folder:    opts.Folder,
+	}
+	if opts.Password != "" {
+		ph, err := auth.HashPassword(opts.Password)
+		if err != nil {
+			return nil, err
+		}
+		rec.PassHash = ph
 	}
 	store.Default.AddFile(rec)
+	if u, ok := store.Default.GetUser(userID); ok && u.WebhookURL != "" {
+		webhook.Fire(u.WebhookURL, u.WebhookSecret, "link.created", LinkPayload(rec))
+	}
 	return rec, nil
 }
 
 // linkMessage builds the text and keyboard that accompany a fresh link.
-func linkMessage(rec *store.FileRecord) ([]part, *tg.ReplyInlineMarkup) {
+func linkMessage(rec *store.FileRecord, lang string) ([]part, *tg.ReplyInlineMarkup) {
 	link := streamURL(rec)
 	size := utils.HumanSize(rec.Size)
 	if rec.Size == 0 {
 		size = "photo"
 	}
+	protected := rec.PassHash != ""
 	text := parts(
-		b("✅ Your link is ready!"), nl(), nl(),
+		b(i18n.T(lang, "link_ready")), nl(), nl(),
 		b("📄 "), p(utils.ShortName(rec.Name, 60)), nl(),
 		b("📊 "), p(utils.FileKind(rec.Mime)+" • "+size), nl(),
 		b("⏳ "), p(utils.TimeLeft(rec.ExpiresAt)), nl(),
-		b("🆔 "), c(fmt.Sprint(rec.MessageID)), nl(), nl(),
-		c(link),
 	)
+	if protected {
+		text = append(text, b("🔒 "), p(i18n.T(lang, "locked")), nl())
+	}
+	if rec.MaxViews > 0 {
+		text = append(text, p(i18n.T(lang, "view_limit", rec.Views, rec.MaxViews)), nl())
+	}
+	text = append(text, b("🆔 "), c(fmt.Sprint(rec.MessageID)), nl(), nl())
+	if !protected {
+		text = append(text, c(link))
+	}
 
 	var rows [][]tg.KeyboardButtonClass
 	if !strings.Contains(link, "http://localhost") { // Telegram rejects localhost URL buttons
-		row := []tg.KeyboardButtonClass{btnURL("⬇️ Download", link+"&d=true")}
-		if strings.Contains(rec.Mime, "video") || strings.Contains(rec.Mime, "audio") || strings.Contains(rec.Mime, "pdf") {
-			row = append(row, btnURL("▶️ Stream", link))
+		if !protected {
+			row := []tg.KeyboardButtonClass{btnURL(i18n.T(lang, "btn_download"), link+"&d=true")}
+			if strings.Contains(rec.Mime, "video") || strings.Contains(rec.Mime, "audio") || strings.Contains(rec.Mime, "pdf") {
+				row = append(row, btnURL(i18n.T(lang, "btn_stream"), link))
+			}
+			rows = append(rows, row)
 		}
-		rows = append(rows, row)
-		if config.ValueOf.EnablePlayer && utils.Playable(rec.Mime) {
-			rows = append(rows, []tg.KeyboardButtonClass{btnURL("🎞 Open in Web Player", watchURL(rec))})
+		if config.ValueOf.EnablePlayer && utils.Playable(rec.Mime) || protected {
+			row := []tg.KeyboardButtonClass{btnURL(i18n.T(lang, "btn_player"), watchURL(rec))}
+			if isHTTPS() {
+				row = append(row, &tg.KeyboardButtonWebView{Text: i18n.T(lang, "btn_app"), URL: watchURL(rec)})
+			}
+			rows = append(rows, row)
 		}
 	}
-	rows = append(rows, []tg.KeyboardButtonClass{
-		btnCB("🗑 Revoke link", fmt.Sprintf("ahar:rv:%d", rec.MessageID)),
-		btnCB("📂 My files", "ahar:files"),
-	})
+	id := rec.MessageID
+	rows = append(rows,
+		[]tg.KeyboardButtonClass{
+			btnCB("⏳ 1h", fmt.Sprintf("ahar:ex:%d:1", id)),
+			btnCB("⏳ 1d", fmt.Sprintf("ahar:ex:%d:24", id)),
+			btnCB("⏳ 7d", fmt.Sprintf("ahar:ex:%d:168", id)),
+			btnCB("♾", fmt.Sprintf("ahar:ex:%d:-1", id)),
+		},
+		[]tg.KeyboardButtonClass{
+			btnCB(i18n.T(lang, "btn_password"), fmt.Sprintf("ahar:pw:%d", id)),
+			btnCB("👁 ×1", fmt.Sprintf("ahar:vw:%d:1", id)),
+			btnCB("👁 ×10", fmt.Sprintf("ahar:vw:%d:10", id)),
+			btnCB("👁 ∞", fmt.Sprintf("ahar:vw:%d:0", id)),
+		},
+		[]tg.KeyboardButtonClass{
+			btnCB(i18n.T(lang, "btn_revoke"), fmt.Sprintf("ahar:rv:%d", id)),
+			btnCB(i18n.T(lang, "btn_files"), "ahar:files"),
+		},
+	)
 	return text, kb(rows...)
 }
+
+// isHTTPS reports whether HOST is a public https URL (required for Mini Apps).
+func isHTTPS() bool { return strings.HasPrefix(config.ValueOf.Host, "https://") }

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0b0f"><meta name="robots" content="noindex">
+<title>Protected link · {{.BotName}}</title>
+{{template "favicon"}}
+<style>{{template "css"}}
+.box{width:100%;max-width:400px;text-align:center}
+.lock{width:72px;height:72px;margin:0 auto 14px;border-radius:22px;background:var(--grad);display:grid;place-items:center;box-shadow:0 14px 40px rgba(255,0,51,.3)}
+.lock svg{width:36px;height:36px;color:#fff}
+h1{font-size:1.4rem;margin:0 0 6px}
+.err{background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.35);color:var(--bad);border-radius:12px;padding:10px 12px;margin:14px 0 0;font-size:.9rem}
+form{margin-top:18px;text-align:left}
+form .btn{width:100%;margin-top:14px}
+</style></head>
+<body><div class="center"><div class="box">
+<div class="card">
+  <div class="lock"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6a5 5 0 0 0-10 0v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9zm3 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg></div>
+  <h1>This link is protected</h1>
+  <div class="muted">Enter the password you were given to open it.</div>
+  {{if .Error}}<div class="err">{{.Error}}</div>{{end}}
+  <form method="post" action="{{.Action}}">
+    <label for="pw">Password</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" autofocus required maxlength="100">
+    <button class="btn pri" type="submit">Unlock</button>
+  </form>
+</div>
+<footer class="f">{{.BotName}} · Remodified by <b>Ahar Developers</b></footer>
+</div></div></body></html>
